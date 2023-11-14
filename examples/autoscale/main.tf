@@ -58,9 +58,8 @@ module "kv" {
 }
 
 module "scaleset" {
-  //source  = "cloudnationhq/vmss/azure"
-  //version = "~> 0.1"
-  source = "../../"
+  source  = "cloudnationhq/vmss/azure"
+  version = "~> 0.1"
 
   vmss = {
     name          = module.naming.linux_virtual_machine_scale_set.name
@@ -69,9 +68,9 @@ module "scaleset" {
     keyvault      = module.kv.vault.id
     type          = "linux"
 
-    autoscaling   = {
-      min = 1
-      max = 5
+    autoscaling = {
+      min   = 1
+      max   = 5
       rules = local.rules
     }
 

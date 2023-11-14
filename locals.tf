@@ -66,8 +66,8 @@ locals {
   rules = flatten([
     for rule_key, rule in try(var.vmss.autoscaling.profile.rules, {}) : {
 
-      rule_key    = rule_key
-      metric_name = rule.metric_name
+      rule_key         = rule_key
+      metric_name      = rule.metric_name
       time_aggregation = rule.time_aggregation
       time_window      = rule.time_window
       operator         = rule.operator
