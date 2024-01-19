@@ -3,7 +3,7 @@ This example shows how to configure a scale set, using the windows operating sys
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.1"
+  version = "~> 0.2"
 
   vmss = {
     name          = module.naming.windows_virtual_machine_scale_set.name
