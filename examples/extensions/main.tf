@@ -60,8 +60,7 @@ module "kv" {
 }
 
 module "scaleset" {
-  source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.1"
+  source = "../.."
 
   vmss = {
     name          = module.naming.linux_virtual_machine_scale_set.name
