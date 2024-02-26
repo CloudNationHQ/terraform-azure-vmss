@@ -67,7 +67,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
 
     content {
       enabled      = true
-      grace_period = lookup(var.vmss.automatic_instance_repair, "grace_period", "PT1H")
+      grace_period = lookup(var.vmss.automatic_instance_repair, "grace_period", "PT30M")
     }
   }
 
