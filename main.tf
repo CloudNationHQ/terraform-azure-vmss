@@ -63,11 +63,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "automatic_instance_repair" {
-    for_each = try(var.vmss.automatic_instance_repair, null) != null ? [1] : []
+    for_each = lookup(var.vmss, "automatic_instance_repair", null) != null ? [1] : []
 
     content {
-      enabled      = try(var.vmss.automatic_instance_repair.enabled, null)
-      grace_period = try(var.vmss.automatic_instance_repair.grace_period, "PT30M")
+      enabled      = true
+      grace_period = lookup(var.vmss.automatic_instance_repair, "grace_period", "PT1H")
     }
   }
 
