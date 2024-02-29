@@ -58,16 +58,17 @@ module "kv" {
 }
 
 module "scaleset" {
-  source = "../.."
+  source = "../../"
 
-  keyvault = module.kv.vault.id
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
 
   vmss = {
+    type          = "linux"
     name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-    keyvault      = module.kv.vault.id
-    type          = "linux"
 
     interfaces = {
       internal = {

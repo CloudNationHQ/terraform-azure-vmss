@@ -19,8 +19,8 @@ locals {
 }
 
 locals {
-  data_disks = flatten([
-    for disk_key, disk in try(var.vmss.data_disks, {}) : {
+  data_disks = [
+    for disk_key, disk in try(var.vmss.disks, {}) : {
 
       disk_key                       = disk_key
       name                           = try(disk.name, join("-", [var.naming.managed_disk, disk_key]))
@@ -34,7 +34,7 @@ locals {
       ultra_ssd_disk_mbps_read_write = try(disk.ultra_ssd_disk_mbps_read_write, null)
       write_accelerator_enabled      = try(disk.write_accelerator_enabled, false)
     }
-  ])
+  ]
 }
 
 locals {
@@ -47,11 +47,9 @@ locals {
       publisher                  = ext.publisher,
       type                       = ext.type,
       type_handler_version       = ext.type_handler_version,
-      force_update_tag           = try(ext.force_update_tag, null),
       settings                   = lookup(ext, "settings", {}),
       protected_settings         = lookup(ext, "protected_settings", {}),
-      automatic_upgrade_enabled  = try(ext.auto_upgrade_minor_version, true)
-      provision_after_extensions = try(ext.provision_after_extensions, null)
+      auto_upgrade_minor_version = try(ext.auto_upgrade_minor_version, true)
     }
   } : {}
 }

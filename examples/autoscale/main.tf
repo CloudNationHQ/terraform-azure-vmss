@@ -58,14 +58,16 @@ module "kv" {
 }
 
 module "scaleset" {
-  source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.1"
+  source = "../../"
+
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
 
   vmss = {
     name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-    keyvault      = module.kv.vault.id
     type          = "linux"
 
     autoscaling = {
@@ -78,12 +80,6 @@ module "scaleset" {
       internal = {
         subnet  = module.network.subnets.internal.id
         primary = true
-      }
-    }
-
-    ssh_keys = {
-      adminuser = {
-        public_key = module.kv.tls_public_keys.vmss.value
       }
     }
   }
