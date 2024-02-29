@@ -550,12 +550,12 @@ resource "azurerm_virtual_machine_scale_set_extension" "ext" {
 
 # autoscaling
 resource "azurerm_monitor_autoscale_setting" "scaling" {
-  for_each = try(var.vmss.autoscaling, null) != null ? { (var.vmss.type) = var.vmss.autoscaling } : {}
+  for_each = try(var.vmss.autoscaling, null) != null ? { (var.vmss.name) = var.vmss.autoscaling } : {}
 
   name                = "scaler"
   resource_group_name = var.vmss.resourcegroup
   location            = var.vmss.location
-  target_resource_id  = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[each.value.vmss_name].id : azurerm_windows_virtual_machine_scale_set.vmss[each.value.vmss_name].id
+  target_resource_id  = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
 
   profile {
     name = "default"
@@ -573,7 +573,7 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
       content {
         metric_trigger {
           metric_name        = rule.value.metric_name
-          metric_resource_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.type].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.type].id
+          metric_resource_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
           time_aggregation   = rule.value.time_aggregation
           time_window        = rule.value.time_window
           time_grain         = rule.value.time_grain
