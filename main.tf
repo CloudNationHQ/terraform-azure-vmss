@@ -8,8 +8,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
 
 
   name                = var.vmss.name
-  resource_group_name = var.vmss.resourcegroup
-  location            = var.vmss.location
+  resource_group_name = coalesce(lookup(var.vmss, "resourcegroup", null), var.resourcegroup)
+  location            = coalesce(lookup(var.vmss, "location", null), var.location)
 
   sku                                               = try(var.vmss.sku, "Standard_DS1_v2")
   instances                                         = try(var.vmss.instances, 2)
