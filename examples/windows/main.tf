@@ -67,11 +67,10 @@ module "scaleset" {
   depends_on = [module.kv]
 
   vmss = {
+    type          = "windows"
     name          = module.naming.windows_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-    password      = module.kv.secrets.vmss.value
-    type          = "windows"
 
     interfaces = {
       internal = {
