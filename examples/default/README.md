@@ -7,23 +7,20 @@ module "scaleset" {
   source = "cloudnationhq/vmss/azure"
   version = "~> 0.2"
 
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
+
   vmss = {
+    type          = "linux"
     name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-    keyvault      = module.kv.vault.id
-    type          = "linux"
 
     interfaces = {
       internal = {
         subnet  = module.network.subnets.internal.id
         primary = true
-      }
-    }
-
-    ssh_keys = {
-      adminuser = {
-        public_key = module.kv.tls_public_keys.vmss.value
       }
     }
   }
@@ -39,6 +36,12 @@ module "scalesets" {
   source = "cloudnationhq/vmss/azure"
   version = "~> 0.1"
 
+  naming        = local.naming
+  keyvault      = module.kv.vault.id
+  resourcegroup = module.rg.groups.demo.name
+  location      = module.rg.groups.demo.location
+  depends_on    = [module.kv]
+
   for_each = local.scalesets
 
   vmss = each.value
@@ -52,41 +55,23 @@ locals {
   scalesets = {
     sc1 = {
       name          = join("-", [module.naming.linux_virtual_machine_scale_set.name, "001"])
-      location      = module.rg.groups.demo.location
-      resourcegroup = module.rg.groups.demo.name
-      keyvault      = module.kv.vault.id
       type          = "linux"
 
       interfaces = {
         internal = {
           subnet = module.network.subnets.internal.id
           primary = true
-        }
-      }
-
-      ssh_keys = {
-        adminuser = {
-          public_key = module.kv.tls_public_keys.vmss.value
         }
       }
     },
     sc2 = {
       name          = join("-", [module.naming.linux_virtual_machine_scale_set.name, "002"])
-      location      = module.rg.groups.demo.location
-      resourcegroup = module.rg.groups.demo.name
-      keyvault      = module.kv.vault.id
       type          = "linux"
 
       interfaces = {
         internal = {
           subnet = module.network.subnets.internal.id
           primary = true
-        }
-      }
-
-      ssh_keys = {
-        adminuser = {
-          public_key = module.kv.tls_public_keys.vmss.value
         }
       }
     },

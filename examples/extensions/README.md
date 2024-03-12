@@ -7,12 +7,18 @@ module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
   version = "~> 0.2"
 
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
+
   vmss = {
-    name           = module.naming.linux_virtual_machine_scale_set.name
-    location       = module.rg.groups.demo.location
-    resourcegroup  = module.rg.groups.demo.name
-    keyvault       = module.kv.vault.id
-    type           = "linux"
+    name          = module.naming.linux_virtual_machine_scale_set.name
+    location      = module.rg.groups.demo.location
+    resourcegroup = module.rg.groups.demo.name
+
+    type = "linux"
+
+    extensions = local.extensions
 
     interfaces = {
       internal = {
@@ -20,18 +26,19 @@ module "scaleset" {
         primary = true
       }
     }
+  }
+}
+```
 
-    extensions = {
-      DAExtension = {
-        publisher            = "Microsoft.Azure.Monitoring.DependencyAgent"
-        type                 = "DependencyAgentLinux"
-        type_handler_version = "9.5"
-      }
-    }
-
-    ssh_keys = {
-      adminuser = {
-        public_key = module.kv.tls_public_keys.vmss.value
+```hcl
+locals {
+  exts = {
+    custom = {
+      publisher            = "Microsoft.Azure.Extensions"
+      type                 = "CustomScript"
+      type_handler_version = "2.0"
+      settings = {
+        "commandToExecute" = "echo 'Hello World' > /tmp/helloworld.txt"
       }
     }
   }

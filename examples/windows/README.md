@@ -5,13 +5,15 @@ module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
   version = "~> 0.2"
 
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
+
   vmss = {
+    type          = "windows"
     name          = module.naming.windows_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-    keyvault      = module.kv.vault.id
-    password      = module.kv.secrets.vmss.value
-    type          = "windows"
 
     interfaces = {
       internal = {
