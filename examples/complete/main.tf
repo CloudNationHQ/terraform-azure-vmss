@@ -66,30 +66,5 @@ module "scaleset" {
   naming     = local.naming
   depends_on = [module.kv]
 
-  vmss = {
-    name          = module.naming.linux_virtual_machine_scale_set.name
-    location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
-    type          = "linux"
-
-    autoscaling = {
-      min   = 1
-      max   = 5
-      rules = local.rules
-    }
-
-    extensions = local.extensions
-
-    interfaces = {
-      internal = {
-        subnet  = module.network.subnets.internal.id
-        primary = true
-      }
-    }
-
-    disks = {
-      db   = { size_gb = 10, lun = 0 }
-      logs = { size_gb = 12, lun = 1 }
-    }
-  }
+  vmss = local.vmss
 }

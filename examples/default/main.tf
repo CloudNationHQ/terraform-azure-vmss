@@ -45,19 +45,12 @@ module "kv" {
     name          = module.naming.key_vault.name_unique
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-
-    secrets = {
-      tls_keys = {
-        vmss = {
-          algorithm = "RSA"
-          rsa_bits  = 2048
-        }
-      }
-    }
   }
 }
 
 module "scaleset" {
+  #source  = "cloudnationhq/vmss/azure"
+  #version = "~> 0.1"
   source = "../../"
 
   keyvault   = module.kv.vault.id

@@ -19,7 +19,7 @@ module "rg" {
 
 module "network" {
   source  = "cloudnationhq/vnet/azure"
-  version = "~> 0.1"
+  version = "~> 2.0"
 
   naming = local.naming
 
@@ -46,34 +46,16 @@ module "kv" {
     name          = module.naming.key_vault.name_unique
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-
-    secrets = {
-      tls_keys = {
-        vmss = {
-          algorithm = "RSA"
-          rsa_bits  = 2048
-        }
-      }
-    }
   }
 }
 
 module "scaleset" {
-  source = "../../"
+  source  = "cloudnationhq/vmss/azure"
+  version = "~> 0.1"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
   depends_on = [module.kv]
 
-  vmss = {
-    name          = module.naming.linux_virtual_machine_scale_set.name
-    location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
-    type          = "linux"
-
-    interfaces = {
-      internal = { subnet = module.network.subnets.internal.id, primary = true }
-      mgmt     = { subnet = module.network.subnets.mgmt.id }
-    }
-  }
+  vmss = local.vmss
 }

@@ -1,12 +1,22 @@
-locals {
-  naming = {
-    # lookup outputs to have consistent naming
-    for type in local.naming_types : type => lookup(module.naming, type).name
-  }
+This example highlights the complete usage.
 
-  naming_types = ["subnet", "network_security_group", "key_vault_secret", "managed_disk"]
+## Usage
+
+```hcl
+module "scaleset" {
+  source = "../../"
+
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
+
+  vmss = local.vmss
 }
+```
 
+The module uses the below locals for configuration:
+
+```hcl
 locals {
   vmss = {
     name          = module.naming.linux_virtual_machine_scale_set.name
@@ -74,3 +84,4 @@ locals {
     }
   }
 }
+```

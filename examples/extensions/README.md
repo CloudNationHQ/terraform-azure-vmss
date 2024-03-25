@@ -5,18 +5,25 @@ This example illustrates the implementation of extensions.
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.2"
+  version = "~> 0.1"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
   depends_on = [module.kv]
 
+  vmss = local.vmss
+}
+```
+
+The module uses the below locals for configuration:
+
+```hcl
+locals {
   vmss = {
     name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-
-    type = "linux"
+    type          = "linux"
 
     extensions = local.extensions
 
@@ -32,7 +39,7 @@ module "scaleset" {
 
 ```hcl
 locals {
-  exts = {
+  extensions = {
     custom = {
       publisher            = "Microsoft.Azure.Extensions"
       type                 = "CustomScript"
@@ -44,3 +51,5 @@ locals {
   }
 }
 ```
+
+

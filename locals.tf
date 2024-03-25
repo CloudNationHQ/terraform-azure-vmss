@@ -23,7 +23,7 @@ locals {
     for disk_key, disk in try(var.vmss.disks, {}) : {
 
       disk_key                       = disk_key
-      name                           = try(disk.name, join("-", [var.naming.managed_disk, disk_key]))
+      name                           = try(disk.name, join("-", [var.naming.managed_disk, disk_key])) // https://github.com/hashicorp/terraform-provider-azurerm/issues/23275
       caching                        = try(disk.caching, "ReadWrite")
       create_option                  = try(disk.create_option, "Empty")
       disk_size_gb                   = try(disk.disk_size_gb, 10)

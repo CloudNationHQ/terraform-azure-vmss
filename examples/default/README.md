@@ -54,7 +54,7 @@ The module uses a local to iterate, generating a scale set for each key.
 locals {
   scalesets = {
     sc1 = {
-      name          = join("-", [module.naming.linux_virtual_machine_scale_set.name, "001"])
+      name          = "vmss-demo-dev-001"
       type          = "linux"
 
       interfaces = {
@@ -65,7 +65,7 @@ locals {
       }
     },
     sc2 = {
-      name          = join("-", [module.naming.linux_virtual_machine_scale_set.name, "002"])
+      name          = "vmss-demo-dev-002"
       type          = "linux"
 
       interfaces = {
@@ -74,7 +74,7 @@ locals {
           primary = true
         }
       }
-    },
+    }
   }
 }
 ```
