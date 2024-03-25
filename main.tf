@@ -41,6 +41,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   single_placement_group                            = try(var.vmss.single_placement_group, true)
   source_image_id                                   = try(var.vmss.source_image_id, null)
   user_data                                         = try(var.vmss.user_data, null)
+  tags                                              = try(var.vmss.tags, var.tags, null)
 
   source_image_reference {
     publisher = try(var.vmss.image.publisher, "Canonical")
@@ -255,6 +256,7 @@ resource "azurerm_key_vault_secret" "tls_public_key_secret" {
   name         = format("%s-%s-%s", "kvs", var.vmss.name, "pub")
   value        = tls_private_key.tls_key[var.vmss.name].public_key_openssh
   key_vault_id = var.keyvault
+  tags         = try(var.vmss.tags, var.tags, null)
 }
 
 resource "azurerm_key_vault_secret" "tls_private_key_secret" {
@@ -264,6 +266,7 @@ resource "azurerm_key_vault_secret" "tls_private_key_secret" {
   name         = format("%s-%s-%s", "kvs", var.vmss.name, "priv")
   value        = tls_private_key.tls_key[var.vmss.name].private_key_pem
   key_vault_id = var.keyvault
+  tags         = try(var.vmss.tags, var.tags, null)
 }
 
 resource "random_password" "password" {
@@ -283,6 +286,7 @@ resource "azurerm_key_vault_secret" "secret" {
   name         = format("%s-%s", "kvs", var.vmss.name)
   value        = random_password.password[var.vmss.name].result
   key_vault_id = var.keyvault
+  tags         = try(var.vmss.tags, var.tags, null)
 }
 
 # scale set windows
@@ -324,6 +328,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   single_placement_group                            = try(var.vmss.single_placement_group, true)
   source_image_id                                   = try(var.vmss.source_image_id, null)
   user_data                                         = try(var.vmss.user_data, null)
+  tags                                              = try(var.vmss.tags, var.tags, null)
 
   source_image_reference {
     publisher = try(var.vmss.image.publisher, "MicrosoftWindowsServer")
@@ -556,6 +561,7 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
   resource_group_name = var.vmss.resourcegroup
   location            = var.vmss.location
   target_resource_id  = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
+  tags                = try(var.vmss.tags, var.tags, null)
 
   profile {
     name = "default"
@@ -603,5 +609,5 @@ resource "azurerm_user_assigned_identity" "identity" {
   name                = try(var.vmss.identity.name, "uai-${var.vmss.name}")
   resource_group_name = coalesce(lookup(var.vmss, "resourcegroup", null), var.resourcegroup)
   location            = coalesce(lookup(var.vmss, "location", null), var.location)
-  tags                = try(var.vmss.identity.tags, null)
+  tags                = try(var.vmss.tags, var.tags, null)
 }
