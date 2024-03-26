@@ -5,18 +5,29 @@ This example details the setup of autoscaling, ensuring dynamic scalability in r
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.2"
+  version = "~> 0.1"
 
+  keyvault   = module.kv.vault.id
+  naming     = local.naming
+  depends_on = [module.kv]
+
+  vmss = local.vmss
+}
+```
+
+The module uses the below locals for configuration:
+
+```hcl
+locals {
   vmss = {
-    name          = module.naming.virtual_machine_scale_set.name
+    name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
     resourcegroup = module.rg.groups.demo.name
-    keyvault      = module.kv.vault.id
     type          = "linux"
 
-    autoscaling   = {
-      min = 1
-      max = 5
+    autoscaling = {
+      min   = 1
+      max   = 5
       rules = local.rules
     }
 
@@ -26,10 +37,38 @@ module "scaleset" {
         primary = true
       }
     }
-    ssh_keys = {
-      adminuser = {
-        public_key = module.kv.tls_public_keys.vmss.value
-      }
+  }
+}
+```
+
+```hcl
+locals {
+  rules = {
+    increase = {
+      metric_name      = "Percentage CPU"
+      time_grain       = "PT1M"
+      statistic        = "Average"
+      time_window      = "PT5M"
+      time_aggregation = "Average"
+      operator         = "GreaterThan"
+      threshold        = 80
+      direction        = "Increase"
+      value            = 1
+      cooldown         = "PT1M"
+      type             = "ChangeCount"
+    }
+    decrease = {
+      metric_name      = "Percentage CPU"
+      time_grain       = "PT1M"
+      statistic        = "Average"
+      time_window      = "PT5M"
+      time_aggregation = "Average"
+      operator         = "LessThan"
+      threshold        = 20
+      direction        = "Decrease"
+      value            = 1
+      cooldown         = "PT1M"
+      type             = "ChangeCount"
     }
   }
 }
