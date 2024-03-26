@@ -3,7 +3,7 @@ This example shows how to configure a scale set, using the windows operating sys
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.1"
+  version = "~> 0.3"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
