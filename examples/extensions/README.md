@@ -5,7 +5,7 @@ This example illustrates the implementation of extensions.
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.3"
+  version = "~> 0.4"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming

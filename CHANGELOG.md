@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.3.0...v0.4.0) (2024-06-07)
+
+
+### Features
+
+* add pull request template ([#22](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/22)) ([ac4f783](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/ac4f7836b0675689119b16043b51621b3cf8c6dc))
+* **deps:** bump github.com/Azure/azure-sdk-for-go/sdk/azidentity ([#17](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/17)) ([f62fa78](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/f62fa783121f00daacef758f76dbc9c8c36b4875))
+* **deps:** bump github.com/hashicorp/go-getter in /tests ([#19](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/19)) ([c7dfd17](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/c7dfd1732cee9f21bfff4dc8bbe2e5e343a831bd))
+
 ## [0.3.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.2.0...v0.3.0) (2024-03-26)
 
 
