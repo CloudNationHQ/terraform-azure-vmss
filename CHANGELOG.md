@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.4.0...v0.5.0) (2024-07-02)
+
+
+### Features
+
+* add issue template ([#28](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/28)) ([90b0276](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/90b02765d7a75781a8a9b99bd5e0012c4851a6ff))
+* **deps:** bump github.com/Azure/azure-sdk-for-go/sdk/azidentity ([#24](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/24)) ([2c5d4e6](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/2c5d4e61253528df560f0c8fa0cce740b6d0bc89))
+* **deps:** bump github.com/Azure/azure-sdk-for-go/sdk/azidentity ([#27](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/27)) ([972b08c](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/972b08ce3062b80065f65f00f1bcc729e6d4758a))
+* **deps:** bump github.com/gruntwork-io/terratest in /tests ([#21](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/21)) ([33b8f7b](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/33b8f7bd4eb14b660e098e9f596986cc6f3a72d4))
+* **deps:** bump github.com/gruntwork-io/terratest in /tests ([#26](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/26)) ([77d0d9e](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/77d0d9eb722496527abf6f6012c1e41a12e0abb6))
+* **deps:** bump github.com/hashicorp/go-getter in /tests ([#25](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/25)) ([dcafc47](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/dcafc478532fba8a3b84484f24464747c1354af3))
+* **deps:** bump golang.org/x/net from 0.19.0 to 0.23.0 in /tests ([#18](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/18)) ([ff462a3](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/ff462a34224cfc4e90fc6854fe0a1e9c0ecc0e21))
+
 ## [0.4.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.3.0...v0.4.0) (2024-06-07)
 
 

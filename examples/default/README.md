@@ -5,7 +5,7 @@ This example illustrates the default virtual machine scale set setup, in its sim
 ```hcl
 module "scaleset" {
   source = "cloudnationhq/vmss/azure"
-  version = "~> 0.4"
+  version = "~> 0.5"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
