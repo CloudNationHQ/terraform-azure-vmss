@@ -5,7 +5,7 @@ This example details the setup of autoscaling, ensuring dynamic scalability in r
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.4"
+  version = "~> 0.5"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
