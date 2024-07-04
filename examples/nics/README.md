@@ -5,7 +5,7 @@ This section outlines the configuration of multiple network interfaces, enabling
 ```hcl
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 0.5"
+  version = "~> 0.6"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
