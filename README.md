@@ -12,6 +12,16 @@ A primary goal is to utilize keys and values in the object that correspond to th
 
 A last key goal is to separate logic from configuration in the module, thereby enhancing its scalability, ease of customization, and manageability.
 
+## Non-Goals
+
+These modules are not intended to be complete, ready-to-use solutions; they are designed as components for creating your own patterns.
+
+They are not tailored for a single use case but are meant to be versatile and applicable to a range of scenarios.
+
+Security standardization is applied at the pattern level, while the modules include default values based on best practices but do not enforce specific security standards.
+
+End-to-end testing is not conducted on these modules, as they are individual components and do not undergo the extensive testing reserved for complete patterns or solutions.
+
 ## Requirements
 
 | Name | Version |
@@ -53,6 +63,11 @@ A last key goal is to separate logic from configuration in the module, thereby e
 | Name | Description | Type | Required |
 | :-- | :-- | :-- | :-- |
 | `vmss` | contains all virtual machine scaleset config | object | yes |
+| `keyvault` | keyvault to store secrets | string | yes |
+| `naming` | contains naming convention	| string | yes |
+| `location` | default azure region to be used | string | no |
+| `resourcegroup` | default resource group to be used | string | no |
+| `tags` | tags to be added to the resources | map(string) | no |
 
 ## Outputs
 
@@ -60,6 +75,7 @@ A last key goal is to separate logic from configuration in the module, thereby e
 | :-- | :-- |
 | `vmss` | contains all virtual machine scale sets |
 | `subscriptionId` | contains the current subscription id |
+| `uai` | contains the user assigned identity |
 
 ## Testing
 
@@ -85,9 +101,15 @@ Full examples detailing all usages, along with integrations with dependency modu
 
 Module is maintained by [these awesome contributors](https://github.com/cloudnationhq/terraform-azure-vmss/graphs/contributors).
 
+## Contributing
+
+We welcome contributions from the community! Whether it's reporting a bug, suggesting a new feature, or submitting a pull request, your input is highly valued.
+
+For more information, please see our contribution [guidelines](./CONTRIBUTING.md).
+
 ## License
 
-MIT Licensed. See [LICENSE](https://github.com/cloudnationhq/terraform-azure-vmss/blob/main/LICENSE) for full details.
+MIT Licensed. See [LICENSE](./LICENSE) for full details.
 
 ## Reference
 
