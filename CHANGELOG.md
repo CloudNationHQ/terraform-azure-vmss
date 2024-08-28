@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.6.0...v0.7.0) (2024-08-28)
+
+
+### Features
+
+* update documentation ([#33](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/33)) ([f2b42d2](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/f2b42d2c4f0dec4f99cbfc2d377f8e4ddc0d056e))
+
 ## [0.6.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.5.0...v0.6.0) (2024-08-28)
 
 
