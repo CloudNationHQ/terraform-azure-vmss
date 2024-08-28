@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.5.0...v0.6.0) (2024-08-28)
+
+
+### Features
+
+* **deps:** bump github.com/gruntwork-io/terratest in /tests ([#32](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/32)) ([c84a644](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/c84a644a8e1929065f0cbf0590da21e0bbe65da9))
+* update contribution docs ([#30](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/30)) ([025a336](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/025a33679c49e41594025e9e9f0fda7184a881fa))
+
 ## [0.5.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.4.0...v0.5.0) (2024-07-02)
 
 
