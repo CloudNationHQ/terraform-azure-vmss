@@ -58,10 +58,10 @@ module "scaleset" {
   depends_on = [module.kv]
 
   vmss = {
-    type          = "linux"
-    name          = module.naming.linux_virtual_machine_scale_set.name
-    location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
+    type           = "linux"
+    name           = module.naming.linux_virtual_machine_scale_set.name
+    location       = module.rg.groups.demo.location
+    resource_group = module.rg.groups.demo.name
 
     interfaces = {
       internal = {

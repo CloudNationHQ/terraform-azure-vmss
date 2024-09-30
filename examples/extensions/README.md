@@ -22,7 +22,7 @@ locals {
   vmss = {
     name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
+    resource_group = module.rg.groups.demo.name
     type          = "linux"
 
     extensions = local.extensions
