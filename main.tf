@@ -8,7 +8,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
 
 
   name                = var.vmss.name
-  resource_group_name = coalesce(lookup(var.vmss, "resourcegroup", null), var.resourcegroup)
+  resource_group_name = coalesce(lookup(var.vmss, "resource_group", null), var.resource_group)
   location            = coalesce(lookup(var.vmss, "location", null), var.location)
 
   sku                                               = try(var.vmss.sku, "Standard_DS1_v2")
@@ -295,7 +295,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
     (var.vmss.name) = true
   } : {}
   name                = var.vmss.name
-  resource_group_name = var.vmss.resourcegroup
+  resource_group_name = var.vmss.resource_group
   location            = var.vmss.location
 
   admin_password = length(lookup(var.vmss, "password", {})) > 0 ? var.vmss.password : azurerm_key_vault_secret.secret[var.vmss.name].value
@@ -558,7 +558,7 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
   for_each = try(var.vmss.autoscaling, null) != null ? { (var.vmss.name) = var.vmss.autoscaling } : {}
 
   name                = "scaler"
-  resource_group_name = var.vmss.resourcegroup
+  resource_group_name = var.vmss.resource_group
   location            = var.vmss.location
   target_resource_id  = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
   tags                = try(var.vmss.tags, var.tags, null)
@@ -607,7 +607,7 @@ resource "azurerm_user_assigned_identity" "identity" {
 
 
   name                = try(var.vmss.identity.name, "uai-${var.vmss.name}")
-  resource_group_name = coalesce(lookup(var.vmss, "resourcegroup", null), var.resourcegroup)
+  resource_group_name = coalesce(lookup(var.vmss, "resource_group", null), var.resource_group)
   location            = coalesce(lookup(var.vmss, "location", null), var.location)
   tags                = try(var.vmss.tags, var.tags, null)
 }

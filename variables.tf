@@ -39,8 +39,8 @@ variable "location" {
   default     = null
 }
 
-variable "resourcegroup" {
-  description = "default resource group and can be used if resourcegroup is not specified inside the object."
+variable "resource_group" {
+  description = "default resource group and can be used if resource_group is not specified inside the object."
   type        = string
   default     = null
 }
