@@ -15,7 +15,7 @@ module "scaleset" {
     type          = "linux"
     name          = module.naming.linux_virtual_machine_scale_set.name
     location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
+    resource_group = module.rg.groups.demo.name
 
     interfaces = {
       internal = {
@@ -38,7 +38,7 @@ module "scalesets" {
 
   naming        = local.naming
   keyvault      = module.kv.vault.id
-  resourcegroup = module.rg.groups.demo.name
+  resource_group = module.rg.groups.demo.name
   location      = module.rg.groups.demo.location
   depends_on    = [module.kv]
 

@@ -4,5 +4,5 @@ output "vmss" {
 }
 
 output "subscriptionId" {
-  value = module.kv.subscriptionId
+  value = module.scaleset.subscriptionId
 }

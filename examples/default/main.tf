@@ -7,27 +7,27 @@ module "naming" {
 
 module "rg" {
   source  = "cloudnationhq/rg/azure"
-  version = "~> 0.1"
+  version = "~> 2.0"
 
   groups = {
     demo = {
-      name   = module.naming.resource_group.name
-      region = "westeurope"
+      name     = module.naming.resource_group.name
+      location = "westeurope"
     }
   }
 }
 
 module "network" {
   source  = "cloudnationhq/vnet/azure"
-  version = "~> 0.1"
+  version = "~> 4.0"
 
   naming = local.naming
 
   vnet = {
-    name          = module.naming.virtual_network.name
-    location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
-    cidr          = ["10.18.0.0/16"]
+    name           = module.naming.virtual_network.name
+    location       = module.rg.groups.demo.location
+    resource_group = module.rg.groups.demo.name
+    cidr           = ["10.18.0.0/16"]
 
     subnets = {
       internal = { cidr = ["10.18.1.0/24"] }
@@ -37,31 +37,30 @@ module "network" {
 
 module "kv" {
   source  = "cloudnationhq/kv/azure"
-  version = "~> 0.1"
+  version = "~> 2.0"
 
   naming = local.naming
 
   vault = {
-    name          = module.naming.key_vault.name_unique
-    location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
+    name           = module.naming.key_vault.name_unique
+    location       = module.rg.groups.demo.location
+    resource_group = module.rg.groups.demo.name
   }
 }
 
 module "scaleset" {
-  #source  = "cloudnationhq/vmss/azure"
-  #version = "~> 0.1"
-  source = "../../"
+  source  = "cloudnationhq/vmss/azure"
+  version = "~> 1.0"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
   depends_on = [module.kv]
 
   vmss = {
-    type          = "linux"
-    name          = module.naming.linux_virtual_machine_scale_set.name
-    location      = module.rg.groups.demo.location
-    resourcegroup = module.rg.groups.demo.name
+    type           = "linux"
+    name           = module.naming.linux_virtual_machine_scale_set.name
+    location       = module.rg.groups.demo.location
+    resource_group = module.rg.groups.demo.name
 
     interfaces = {
       internal = {
