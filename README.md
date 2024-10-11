@@ -22,6 +22,15 @@ Security standardization is applied at the pattern level, while the modules incl
 
 End-to-end testing is not conducted on these modules, as they are individual components and do not undergo the extensive testing reserved for complete patterns or solutions.
 
+## Features
+
+- the capability to handle multiple SSH keys.
+- the inclusion of multiple network interfaces.
+- the support for multiple data disks.
+- the flexibility to incorporate multiple extensions
+- utilization of terratest for robust validation.
+- autoscaling capabilities with the use of multiple rules.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
