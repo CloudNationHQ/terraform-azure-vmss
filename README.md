@@ -22,60 +22,59 @@ Security standardization is applied at the pattern level, while the modules incl
 
 End-to-end testing is not conducted on these modules, as they are individual components and do not undergo the extensive testing reserved for complete patterns or solutions.
 
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 3.61 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0.4 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 3.61 |
-
-## Features
-
-- the capability to handle multiple SSH keys.
-- the inclusion of multiple network interfaces.
-- the support for multiple data disks.
-- the flexibility to incorporate multiple extensions
-- utilization of terratest for robust validation.
-- autoscaling capabilities with the use of multiple rules.
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 4.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0.4 |
 
 ## Resources
 
 | Name | Type |
-| :-- | :-- |
-| [azurerm_windows_virtual_machine_scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set) | resource |
-| [azurerm_linux_virtual_machine_scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) | resource |
-| [azurerm_subscription](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) | data source |
-| [azurerm_monitor_autoscale_setting](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_autoscale_setting) | resource |
-| [random_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
-| [azurerm_key_vault_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [tls_private_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-| [azurerm_user_assigned_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
-| [azurerm_virtual_machine_scale_set_extension](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_scale_set_extension) | resource |
+|------|------|
+| [azurerm_key_vault_secret.secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.tls_private_key_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.tls_public_key_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_linux_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) | resource |
+| [azurerm_monitor_autoscale_setting.scaling](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_autoscale_setting) | resource |
+| [azurerm_user_assigned_identity.identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
+| [azurerm_virtual_machine_scale_set_extension.ext](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_scale_set_extension) | resource |
+| [azurerm_windows_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set) | resource |
+| [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [tls_private_key.tls_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
+| [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) | data source |
 
 ## Inputs
 
-| Name | Description | Type | Required |
-| :-- | :-- | :-- | :-- |
-| `vmss` | contains all virtual machine scaleset config | object | yes |
-| `keyvault` | keyvault to store secrets | string | yes |
-| `naming` | contains naming convention	| string | yes |
-| `location` | default azure region to be used | string | no |
-| `resource_group` | default resource group to be used | string | no |
-| `tags` | tags to be added to the resources | map(string) | no |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_keyvault"></a> [keyvault](#input\_keyvault) | keyvault id to store secrets | `string` | `null` | no |
+| <a name="input_location"></a> [location](#input\_location) | default azure region and can be used if location is not specified inside the object. | `string` | `null` | no |
+| <a name="input_naming"></a> [naming](#input\_naming) | used for naming purposes | `map(string)` | `{}` | no |
+| <a name="input_resource_group"></a> [resource\_group](#input\_resource\_group) | default resource group and can be used if resource\_group is not specified inside the object. | `string` | `null` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | tags to be added to the resources | `map(string)` | `{}` | no |
+| <a name="input_vmss"></a> [vmss](#input\_vmss) | contains all virtual machine scale set config | `any` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
-| :-- | :-- |
-| `vmss` | contains all virtual machine scale sets |
-| `subscriptionId` | contains the current subscription id |
-| `uai` | contains the user assigned identity |
+|------|-------------|
+| <a name="output_subscriptionId"></a> [subscriptionId](#output\_subscriptionId) | contains the current subscription id |
+| <a name="output_uai"></a> [uai](#output\_uai) | contains the user assigned identity |
+| <a name="output_vmss"></a> [vmss](#output\_vmss) | contains all virtual machine scale set config |
+<!-- END_TF_DOCS -->
 
 ## Testing
 
