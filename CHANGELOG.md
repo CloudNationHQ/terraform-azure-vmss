@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.0.0...v1.1.0) (2024-10-11)
+
+
+### Features
+
+* auto generated docs and refine makefile ([#43](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/43)) ([b3bd4eb](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/b3bd4eb1745fc8313c46a23bad78f26237e5ab38))
+
 ## [1.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v0.8.0...v1.0.0) (2024-10-03)
 
 
