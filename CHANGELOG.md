@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.1.0...v1.2.0) (2024-11-11)
+
+
+### Features
+
+* enhance testing with sequential, parallel modes and flags for exceptions and skip-destroy ([#45](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/45)) ([c2c29b8](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/c2c29b81a2fa4182cf9f2340c076f90bafea304b))
+
 ## [1.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.0.0...v1.1.0) (2024-10-11)
 
 
