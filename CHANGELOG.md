@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.2.0...v1.3.0) (2025-01-20)
+
+
+### Features
+
+* **deps:** bump github.com/gruntwork-io/terratest in /tests ([#48](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/48)) ([7b1d359](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/7b1d359060f495692d9f4e1a8560fb597632f0de))
+* **deps:** bump golang.org/x/crypto from 0.29.0 to 0.31.0 in /tests ([#51](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/51)) ([ea97ea4](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/ea97ea401916a8f104770eef1edb18cc2cdaf4f4))
+* **deps:** bump golang.org/x/net from 0.31.0 to 0.33.0 in /tests ([#52](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/52)) ([b5762dd](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/b5762dd0434ac6c915931261a68fa56846597e2c))
+* remove temporary files when deployment tests fails ([#49](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/49)) ([7c539bc](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/7c539bca227920ea6f4dd1dc05d72cdee62e6ada))
+
 ## [1.2.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.1.0...v1.2.0) (2024-11-11)
 
 
