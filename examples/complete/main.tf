@@ -61,7 +61,7 @@ module "kv" {
 
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming

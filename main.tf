@@ -6,101 +6,136 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
     (var.vmss.name) = true
   } : {}
 
+  resource_group_name = coalesce(
+    lookup(
+      var.vmss, "resource_group_name", null
+    ), var.resource_group_name
+  )
 
-  name                = var.vmss.name
-  resource_group_name = coalesce(lookup(var.vmss, "resource_group", null), var.resource_group)
-  location            = coalesce(lookup(var.vmss, "location", null), var.location)
+  location = coalesce(
+    lookup(var.vmss, "location", null
+    ), var.location
+  )
 
-  sku                                               = try(var.vmss.sku, "Standard_DS1_v2")
-  instances                                         = try(var.vmss.instances, 2)
-  admin_username                                    = try(var.vmss.admin_username, "adminuser")
-  admin_password                                    = try(var.vmss.password, null)
-  disable_password_authentication                   = try(var.vmss.disable_password_authentication, true)
-  upgrade_mode                                      = try(var.vmss.upgrade_mode, "Automatic")
-  provision_vm_agent                                = try(var.vmss.provision_vm_agent, true)
-  platform_fault_domain_count                       = try(var.vmss.platform_fault_domain_count, 5)
-  priority                                          = try(var.vmss.priority, "Regular")
-  secure_boot_enabled                               = try(var.vmss.secure_boot_enabled, false)
-  vtpm_enabled                                      = try(var.vmss.vtpm_enabled, false)
-  zone_balance                                      = try(var.vmss.zone_balance, false)
-  zones                                             = try(var.vmss.zones, ["2"])
-  edge_zone                                         = try(var.vmss.edge_zone, null)
-  encryption_at_host_enabled                        = try(var.vmss.encryption_at_host_enabled, false)
-  extension_operations_enabled                      = try(var.vmss.extension_operations_enabled, true)
-  extensions_time_budget                            = try(var.vmss.extensions_time_budget, "PT1H30M")
-  overprovision                                     = try(var.vmss.overprovision, true)
-  capacity_reservation_group_id                     = try(var.vmss.capacity_reservation_group_id, null)
-  computer_name_prefix                              = try(var.vmss.computer_name_prefix, var.vmss.name)
-  custom_data                                       = try(var.vmss.custom_data, null)
-  do_not_run_extensions_on_overprovisioned_machines = try(var.vmss.do_not_run_extensions_on_overprovisioned_machines, false)
-  eviction_policy                                   = try(var.vmss.eviction_policy, null)
-  health_probe_id                                   = try(var.vmss.health_probe_id, null)
-  host_group_id                                     = try(var.vmss.host_group_id, null)
-  max_bid_price                                     = try(var.vmss.max_bid_price, null)
-  proximity_placement_group_id                      = try(var.vmss.proximity_placement_group_id, null)
-  single_placement_group                            = try(var.vmss.single_placement_group, true)
-  source_image_id                                   = try(var.vmss.source_image_id, null)
-  user_data                                         = try(var.vmss.user_data, null)
-  tags                                              = try(var.vmss.tags, var.tags, null)
+  name                                              = var.vmss.name
+  sku                                               = var.vmss.sku
+  instances                                         = var.vmss.instances
+  admin_username                                    = var.vmss.admin_username
+  admin_password                                    = var.vmss.admin_password
+  upgrade_mode                                      = var.vmss.upgrade_mode
+  provision_vm_agent                                = var.vmss.provision_vm_agent
+  platform_fault_domain_count                       = var.vmss.platform_fault_domain_count
+  priority                                          = var.vmss.priority
+  secure_boot_enabled                               = var.vmss.secure_boot_enabled
+  vtpm_enabled                                      = var.vmss.vtpm_enabled
+  zone_balance                                      = var.vmss.zone_balance
+  zones                                             = var.vmss.zones
+  edge_zone                                         = var.vmss.edge_zone
+  encryption_at_host_enabled                        = var.vmss.encryption_at_host_enabled
+  extension_operations_enabled                      = var.vmss.extension_operations_enabled
+  extensions_time_budget                            = var.vmss.extensions_time_budget
+  overprovision                                     = var.vmss.overprovision
+  capacity_reservation_group_id                     = var.vmss.capacity_reservation_group_id
+  computer_name_prefix                              = coalesce(var.vmss.computer_name_prefix, var.vmss.name)
+  custom_data                                       = var.vmss.custom_data
+  do_not_run_extensions_on_overprovisioned_machines = var.vmss.do_not_run_extensions_on_overprovisioned_machines
+  eviction_policy                                   = var.vmss.eviction_policy
+  health_probe_id                                   = var.vmss.health_probe_id
+  host_group_id                                     = var.vmss.host_group_id
+  max_bid_price                                     = var.vmss.max_bid_price
+  proximity_placement_group_id                      = var.vmss.proximity_placement_group_id
+  single_placement_group                            = var.vmss.single_placement_group
+  source_image_id                                   = var.vmss.source_image_id
+  user_data                                         = var.vmss.user_data
+  tags                                              = coalesce(var.vmss.tags, var.tags)
 
-  source_image_reference {
-    publisher = try(var.vmss.image.publisher, "Canonical")
-    offer     = try(var.vmss.image.offer, "UbuntuServer")
-    sku       = try(var.vmss.image.sku, "18.04-LTS")
-    version   = try(var.vmss.image.version, "latest")
+  disable_password_authentication = (
+    try(var.vmss.password, null) != null ? false : try(var.vmss.public_key, null) != null ||
+    contains(keys(tls_private_key.tls_key), var.vmss.name) ? true : try(var.vmss.disable_password_authentication, true)
+  )
+
+  dynamic "source_image_reference" {
+    for_each = try(var.vmss.source_image_id, null) == null ? [true] : []
+
+    content {
+      publisher = try(
+        var.vmss.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
+      )
+      offer = try(
+        var.vmss.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
+      )
+      sku = try(
+        var.vmss.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
+      )
+      version = try(
+        var.vmss.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
+      )
+    }
   }
 
   os_disk {
-    storage_account_type = try(var.vmss.os_disk.storage_account_type, "Standard_LRS")
-    caching              = try(var.vmss.os_disk.caching, "ReadWrite")
+    storage_account_type             = var.vmss.os_disk.storage_account_type
+    caching                          = var.vmss.os_disk.caching
+    disk_encryption_set_id           = var.vmss.os_disk.disk_encryption_set_id
+    disk_size_gb                     = var.vmss.os_disk.disk_size_gb
+    secure_vm_disk_encryption_set_id = var.vmss.os_disk.secure_vm_disk_encryption_set_id
+    security_encryption_type         = var.vmss.os_disk.security_encryption_type
+    write_accelerator_enabled        = var.vmss.os_disk.write_accelerator_enabled
 
     dynamic "diff_disk_settings" {
-      for_each = lookup(var.vmss, "diff_disk_settings", null) != null ? [1] : []
+      for_each = var.vmss.diff_disk_settings != null ? [1] : []
 
       content {
-        option    = lookup(var.vmss.diff_disk_settings, "option", null)
-        placement = lookup(var.vmss.diff_disk_settings, "placement", null)
+        option    = var.vmss.diff_disk_settings.option
+        placement = var.vmss.diff_disk_settings.placement
       }
     }
   }
 
+
+
   dynamic "additional_capabilities" {
-    for_each = lookup(var.vmss, "ultra_ssd_enabled", false) == true ? [1] : []
+    for_each = try(var.vmss.additional_capabilities, null) != null ? [1] : []
+
     content {
-      ultra_ssd_enabled = true
+      ultra_ssd_enabled = var.vmss.additional_capabilities.ultra_ssd_enabled
     }
   }
 
   dynamic "admin_ssh_key" {
-    for_each = try(var.vmss.public_key, null) != null || try(var.vmss.password, null) == null && try(var.vmss.public_key, null) == null ? [1] : []
+    for_each = try(var.vmss.public_key, null) != null || contains(keys(tls_private_key.tls_key), var.vmss.name) ? [1] : []
+
     content {
-      username   = try(var.vmss.username, "adminuser")
+      username   = var.vmss.username
       public_key = try(var.vmss.public_key, null) != null ? var.vmss.public_key : tls_private_key.tls_key[var.vmss.name].public_key_openssh
     }
   }
 
   dynamic "automatic_instance_repair" {
-    for_each = lookup(var.vmss, "automatic_instance_repair", null) != null ? [1] : []
+    for_each = var.vmss.automatic_instance_repair != null ? [1] : []
 
     content {
-      enabled      = true
-      grace_period = lookup(var.vmss.automatic_instance_repair, "grace_period", "PT30M")
+      enabled      = var.vmss.automatic_instance_repair.enabled
+      grace_period = var.vmss.automatic_instance_repair.grace_period
     }
   }
 
   dynamic "automatic_os_upgrade_policy" {
-    for_each = lookup(var.vmss, "automatic_os_upgrade_policy", null) != null ? [1] : []
+    for_each = var.vmss.automatic_os_upgrade_policy != null ? [1] : []
 
     content {
-      disable_automatic_rollback  = try(var.vmss.automatic_os_upgrade_policy.disable_automatic_rollback, null)
-      enable_automatic_os_upgrade = try(var.vmss.automatic_os_upgrade_policy.enable_automatic_os_upgrade, null)
+      disable_automatic_rollback  = var.vmss.automatic_os_upgrade_policy.disable_automatic_rollback
+      enable_automatic_os_upgrade = var.vmss.automatic_os_upgrade_policy.enable_automatic_os_upgrade
     }
   }
 
   dynamic "boot_diagnostics" {
-    for_each = lookup(var.vmss, "boot_diags", null) != null ? [1] : []
+    for_each = lookup(var.vmss, "boot_diagnostics", null) != null ? [1] : []
+
     content {
-      storage_account_uri = lookup(var.vmss.boot_diags, "storage_uri", null)
+      storage_account_uri = lookup(
+        var.vmss.boot_diagnostics, "storage_account_uri", null
+      )
     }
   }
 
@@ -124,24 +159,24 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "gallery_application" {
-    for_each = lookup(var.vmss, "gallery_application", null) != null ? [1] : []
+    for_each = try(
+      var.vmss.gallery_applications, {}
+    )
+
     content {
-      version_id             = lookup(var.vmss.gallery_application, "version_id", null)
-      configuration_blob_uri = lookup(var.vmss.gallery_application, "configuration_blob_uri", null)
-      order                  = lookup(var.vmss.gallery_application, "order", null)
-      tag                    = lookup(var.vmss.gallery_application, "tag", null)
+      tag                    = gallery_application.value.tag
+      order                  = gallery_application.value.order
+      version_id             = gallery_application.value.version_id
+      configuration_blob_uri = gallery_application.value.configuration_blob_uri
     }
   }
 
   dynamic "identity" {
-    for_each = [lookup(var.vmss, "identity", { type = "SystemAssigned", identity_ids = [] })]
+    for_each = lookup(var.vmss, "identity", null) != null ? [var.vmss.identity] : []
 
     content {
-      type = identity.value.type
-      identity_ids = concat(
-        try([azurerm_user_assigned_identity.identity[var.vmss.name].id], []),
-        lookup(identity.value, "identity_ids", [])
-      )
+      type         = identity.value.type
+      identity_ids = identity.value.identity_ids
     }
   }
 
@@ -170,67 +205,66 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "plan" {
-    for_each = lookup(var.vmss, "plan", null) != null ? [1] : []
+    for_each = var.vmss.plan != null ? [1] : []
 
     content {
-      name      = lookup(var.vmss.plan, "name", null)
-      publisher = lookup(var.vmss.plan, "publisher", null)
-      product   = lookup(var.vmss.plan, "product", null)
+      name      = var.vmss.plan.name
+      publisher = var.vmss.plan.publisher
+      product   = var.vmss.plan.product
     }
   }
 
   dynamic "rolling_upgrade_policy" {
-    for_each = lookup(var.vmss, "rolling_upgrade_policy", null) != null ? [1] : []
+    for_each = var.vmss.rolling_upgrade_policy != null ? [1] : []
 
     content {
-      cross_zone_upgrades_enabled             = lookup(var.vmss.rolling_upgrade_policy, "cross_zone_upgrades_enabled", null)
-      max_batch_instance_percent              = lookup(var.vmss.rolling_upgrade_policy, "max_batch_instance_percent", null)
-      max_unhealthy_instance_percent          = lookup(var.vmss.rolling_upgrade_policy, "max_unhealthy_instance_percent", null)
-      max_unhealthy_upgraded_instance_percent = lookup(var.vmss.rolling_upgrade_policy, "max_unhealthy_upgraded_instance_percent", null)
-      pause_time_between_batches              = lookup(var.vmss.rolling_upgrade_policy, "pause_time_between_batches", null)
-      prioritize_unhealthy_instances_enabled  = lookup(var.vmss.rolling_upgrade_policy, "prioritize_unhealthy_instances_enabled", null)
+      cross_zone_upgrades_enabled             = var.vmss.rolling_upgrade_policy.cross_zone_upgrades_enabled
+      max_batch_instance_percent              = var.vmss.rolling_upgrade_policy.max_batch_instance_percent
+      max_unhealthy_instance_percent          = var.vmss.rolling_upgrade_policy.max_unhealthy_instance_percent
+      max_unhealthy_upgraded_instance_percent = var.vmss.rolling_upgrade_policy.max_unhealthy_upgraded_instance_percent
+      pause_time_between_batches              = var.vmss.rolling_upgrade_policy.pause_time_between_batches
+      prioritize_unhealthy_instances_enabled  = var.vmss.rolling_upgrade_policy.prioritize_unhealthy_instances_enabled
     }
   }
 
   dynamic "scale_in" {
-    for_each = lookup(var.vmss, "scale_in", null) != null ? [1] : []
+    for_each = var.vmss.scale_in != null ? [1] : []
 
     content {
-      rule                   = lookup(var.vmss.scale_in, "rule", null)
-      force_deletion_enabled = lookup(var.vmss.scale_in, "force_deletion_enabled", null)
+      rule                   = var.vmss.scale_in.rule
+      force_deletion_enabled = var.vmss.scale_in.force_deletion_enabled
     }
   }
 
   dynamic "secret" {
-    for_each = lookup(var.vmss, "secret", null) != null ? [1] : []
+    for_each = try(
+      var.vmss.secrets, {}
+    )
 
     content {
-      key_vault_id = lookup(var.vmss.secret, "key_vault_id", null)
+      key_vault_id = secret.value.key_vault_id
 
-      dynamic "certificate" {
-        for_each = try(var.vmss.secret.certificate, null) != null ? [1] : []
-        content {
-          url = certificate.value.url
-        }
+      certificate {
+        url = secret.value.certificate.url
       }
     }
   }
 
   dynamic "spot_restore" {
-    for_each = lookup(var.vmss, "spot_restore", null) != null ? [1] : []
+    for_each = var.vmss.spot_restore != null ? [1] : []
 
     content {
-      enabled = true
-      timeout = lookup(var.vmss, "timeout", "PT1H")
+      enabled = var.vmss.spot_restore.enabled
+      timeout = var.vmss.spot_restore.timeout
     }
   }
 
   dynamic "termination_notification" {
-    for_each = lookup(var.vmss, "termination_notification", null) != null ? [1] : []
+    for_each = try(var.vmss.termination_notification, null) != null ? [1] : []
 
     content {
-      enabled = true
-      timeout = lookup(var.vmss.termination_notification, "timeout", "PT5M")
+      enabled = var.vmss.termination_notification.enabled
+      timeout = var.vmss.termination_notification.timeout
     }
   }
 
@@ -241,52 +275,65 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
 
 # secrets
 resource "tls_private_key" "tls_key" {
-  # workaround, keys used in for each must be known at plan time
-  for_each = var.vmss.type == "linux" && lookup(var.vmss, "public_key", {}) == {} && lookup(
-  var.vmss, "password", {}) == {} ? { (var.vmss.name) = true } : {}
+  for_each = var.vmss.type == "linux" && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
 
-  algorithm = try(var.vmss.encryption.algorithm, "RSA")
-  rsa_bits  = try(var.vmss.encryption.rsa_bits, 4096)
+  algorithm   = var.vmss.generate_ssh_key.algorithm
+  rsa_bits    = var.vmss.generate_ssh_key.rsa_bits
+  ecdsa_curve = var.vmss.generate_ssh_key.ecdsa_curve
 }
 
 resource "azurerm_key_vault_secret" "tls_public_key_secret" {
-  for_each = var.vmss.type == "linux" && lookup(var.vmss, "public_key", {}) == {} && lookup(
-  var.vmss, "password", {}) == {} ? { (var.vmss.name) = true } : {}
+  for_each = var.vmss.type == "linux" && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
 
-  name         = format("%s-%s-%s", "kvs", var.vmss.name, "pub")
-  value        = tls_private_key.tls_key[var.vmss.name].public_key_openssh
-  key_vault_id = var.keyvault
-  tags         = try(var.vmss.tags, var.tags, null)
+  name             = format("%s-%s-%s", "kvs", var.vmss.name, "pub")
+  value            = tls_private_key.tls_key[var.vmss.name].public_key_openssh
+  key_vault_id     = var.keyvault
+  expiration_date  = var.vmss.generate_ssh_key.expiration_date
+  not_before_date  = var.vmss.generate_ssh_key.not_before_date
+  value_wo_version = var.vmss.generate_ssh_key.value_wo_version
+  value_wo         = var.vmss.generate_ssh_key.value_wo
+  content_type     = var.vmss.generate_ssh_key.content_type
+
+  tags = coalesce(
+    var.vmss.tags, var.tags
+  )
 }
 
 resource "azurerm_key_vault_secret" "tls_private_key_secret" {
-  for_each = var.vmss.type == "linux" && lookup(var.vmss, "public_key", {}) == {} && lookup(
-  var.vmss, "password", {}) == {} ? { (var.vmss.name) = true } : {}
+  for_each = var.vmss.type == "linux" && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
 
-  name         = format("%s-%s-%s", "kvs", var.vmss.name, "priv")
-  value        = tls_private_key.tls_key[var.vmss.name].private_key_pem
-  key_vault_id = var.keyvault
-  tags         = try(var.vmss.tags, var.tags, null)
+  name             = format("%s-%s-%s", "kvs", var.vmss.name, "priv")
+  value            = tls_private_key.tls_key[var.vmss.name].private_key_pem
+  key_vault_id     = var.keyvault
+  expiration_date  = var.vmss.generate_ssh_key.expiration_date
+  not_before_date  = var.vmss.generate_ssh_key.not_before_date
+  value_wo         = var.vmss.generate_ssh_key.value_wo
+  value_wo_version = var.vmss.generate_ssh_key.value_wo_version
+  content_type     = var.vmss.generate_ssh_key.content_type
+
+  tags = coalesce(
+    var.vmss.tags, var.tags
+  )
 }
 
 resource "random_password" "password" {
-  for_each = var.vmss.type == "windows" && lookup(var.vmss, "password", {}) == {} ? { (var.vmss.name) = true } : {}
+  for_each = var.vmss.type == "windows" && var.vmss.admin_password == null ? { (var.vmss.name) = true } : {}
 
-  length      = 24
-  special     = true
-  min_lower   = 5
-  min_upper   = 7
-  min_special = 4
-  min_numeric = 5
+  length      = var.vmss.generate_password.length
+  special     = var.vmss.generate_password.special
+  min_lower   = var.vmss.generate_password.min_lower
+  min_upper   = var.vmss.generate_password.min_upper
+  min_special = var.vmss.generate_password.min_special
+  min_numeric = var.vmss.generate_password.min_numeric
 }
 
 resource "azurerm_key_vault_secret" "secret" {
-  for_each = var.vmss.type == "windows" && lookup(var.vmss, "password", {}) == {} ? { (var.vmss.name) = true } : {}
+  for_each = var.vmss.type == "windows" && var.vmss.admin_password == null ? { (var.vmss.name) = true } : {}
 
   name         = format("%s-%s", "kvs", var.vmss.name)
   value        = random_password.password[var.vmss.name].result
   key_vault_id = var.keyvault
-  tags         = try(var.vmss.tags, var.tags, null)
+  tags         = coalesce(var.vmss.tags, var.tags)
 }
 
 # scale set windows
@@ -294,101 +341,129 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   for_each = var.vmss.type == "windows" ? {
     (var.vmss.name) = true
   } : {}
-  name                = var.vmss.name
-  resource_group_name = var.vmss.resource_group
-  location            = var.vmss.location
+  name = var.vmss.name
+  resource_group_name = coalesce(
+    lookup(
+      var.vmss, "resource_group_name", null
+    ), var.resource_group_name
+  )
 
-  admin_password = length(lookup(var.vmss, "password", {})) > 0 ? var.vmss.password : azurerm_key_vault_secret.secret[var.vmss.name].value
+  location = coalesce(
+    lookup(var.vmss, "location", null
+    ), var.location
+  )
 
-  sku                                               = try(var.vmss.sku, "Standard_DS1_v2")
-  instances                                         = try(var.vmss.instances, 2)
-  admin_username                                    = try(var.vmss.admin_username, "adminuser")
-  upgrade_mode                                      = try(var.vmss.upgrade_mode, "Automatic")
-  provision_vm_agent                                = try(var.vmss.provision_vm_agent, true)
-  platform_fault_domain_count                       = try(var.vmss.platform_fault_domain_count, 5)
-  priority                                          = try(var.vmss.priority, "Regular")
-  secure_boot_enabled                               = try(var.vmss.secure_boot_enabled, false)
-  vtpm_enabled                                      = try(var.vmss.vtpm_enabled, false)
-  zone_balance                                      = try(var.vmss.zone_balance, false)
-  zones                                             = try(var.vmss.zones, ["2"])
-  edge_zone                                         = try(var.vmss.edge_zone, null)
-  encryption_at_host_enabled                        = try(var.vmss.encryption_at_host_enabled, false)
-  extension_operations_enabled                      = try(var.vmss.extension_operations_enabled, true)
-  extensions_time_budget                            = try(var.vmss.extensions_time_budget, "PT1H30M")
-  overprovision                                     = try(var.vmss.overprovision, true)
-  capacity_reservation_group_id                     = try(var.vmss.capacity_reservation_group_id, null)
-  computer_name_prefix                              = try(var.vmss.computer_name_prefix, var.vmss.name)
-  custom_data                                       = try(var.vmss.custom_data, null)
-  do_not_run_extensions_on_overprovisioned_machines = try(var.vmss.do_not_run_extensions_on_overprovisioned_machines, false)
-  eviction_policy                                   = try(var.vmss.eviction_policy, null)
-  health_probe_id                                   = try(var.vmss.health_probe_id, null)
-  host_group_id                                     = try(var.vmss.host_group_id, null)
-  max_bid_price                                     = try(var.vmss.max_bid_price, null)
-  proximity_placement_group_id                      = try(var.vmss.proximity_placement_group_id, null)
-  single_placement_group                            = try(var.vmss.single_placement_group, true)
-  source_image_id                                   = try(var.vmss.source_image_id, null)
-  user_data                                         = try(var.vmss.user_data, null)
-  tags                                              = try(var.vmss.tags, var.tags, null)
+  admin_password = var.vmss.admin_password != null ? var.vmss.admin_password : azurerm_key_vault_secret.secret[var.vmss.name].value
 
-  source_image_reference {
-    publisher = try(var.vmss.image.publisher, "MicrosoftWindowsServer")
-    offer     = try(var.vmss.image.offer, "WindowsServer")
-    sku       = try(var.vmss.image.sku, "2016-Datacenter-Server-Core")
-    version   = try(var.vmss.image.version, "latest")
+  sku                                               = var.vmss.sku
+  instances                                         = var.vmss.instances
+  admin_username                                    = var.vmss.admin_username
+  upgrade_mode                                      = var.vmss.upgrade_mode
+  provision_vm_agent                                = var.vmss.provision_vm_agent
+  platform_fault_domain_count                       = var.vmss.platform_fault_domain_count
+  priority                                          = var.vmss.priority
+  secure_boot_enabled                               = var.vmss.secure_boot_enabled
+  vtpm_enabled                                      = var.vmss.vtpm_enabled
+  zone_balance                                      = var.vmss.zone_balance
+  zones                                             = var.vmss.zones
+  edge_zone                                         = var.vmss.edge_zone
+  encryption_at_host_enabled                        = var.vmss.encryption_at_host_enabled
+  extension_operations_enabled                      = var.vmss.extension_operations_enabled
+  extensions_time_budget                            = var.vmss.extensions_time_budget
+  overprovision                                     = var.vmss.overprovision
+  capacity_reservation_group_id                     = var.vmss.capacity_reservation_group_id
+  computer_name_prefix                              = coalesce(var.vmss.computer_name_prefix, var.vmss.name)
+  custom_data                                       = var.vmss.custom_data
+  do_not_run_extensions_on_overprovisioned_machines = var.vmss.do_not_run_extensions_on_overprovisioned_machines
+  eviction_policy                                   = var.vmss.eviction_policy
+  health_probe_id                                   = var.vmss.health_probe_id
+  host_group_id                                     = var.vmss.host_group_id
+  max_bid_price                                     = var.vmss.max_bid_price
+  proximity_placement_group_id                      = var.vmss.proximity_placement_group_id
+  single_placement_group                            = var.vmss.single_placement_group
+  source_image_id                                   = var.vmss.source_image_id
+  user_data                                         = var.vmss.user_data
+  tags                                              = coalesce(var.vmss.tags, var.tags)
+
+  dynamic "source_image_reference" {
+    for_each = try(var.vmss.source_image_id, null) == null ? [true] : []
+
+    content {
+      publisher = try(
+        var.vmss.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
+      )
+      offer = try(
+        var.vmss.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
+      )
+      sku = try(
+        var.vmss.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
+      )
+      version = try(
+        var.vmss.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
+      )
+    }
   }
-
   os_disk {
-    storage_account_type = try(var.vmss.os_disk.storage_account_type, "Standard_LRS")
-    caching              = try(var.vmss.os_disk.caching, "ReadWrite")
+    storage_account_type             = var.vmss.os_disk.storage_account_type
+    caching                          = var.vmss.os_disk.caching
+    disk_encryption_set_id           = var.vmss.os_disk.disk_encryption_set_id
+    disk_size_gb                     = var.vmss.os_disk.disk_size_gb
+    secure_vm_disk_encryption_set_id = var.vmss.os_disk.secure_vm_disk_encryption_set_id
+    security_encryption_type         = var.vmss.os_disk.security_encryption_type
+    write_accelerator_enabled        = var.vmss.os_disk.write_accelerator_enabled
 
     dynamic "diff_disk_settings" {
-      for_each = lookup(var.vmss, "diff_disk_settings", null) != null ? [1] : []
+      for_each = var.vmss.diff_disk_settings != null ? [1] : []
 
       content {
-        option    = lookup(var.vmss.diff_disk_settings, "option", null)
-        placement = lookup(var.vmss.diff_disk_settings, "placement", null)
+        option    = var.vmss.diff_disk_settings.option
+        placement = var.vmss.diff_disk_settings.placement
       }
     }
   }
 
   dynamic "additional_capabilities" {
-    for_each = lookup(var.vmss, "ultra_ssd_enabled", false) == true ? [1] : []
+    for_each = try(var.vmss.additional_capabilities, null) != null ? [1] : []
+
     content {
-      ultra_ssd_enabled = true
+      ultra_ssd_enabled = var.vmss.additional_capabilities.ultra_ssd_enabled
     }
   }
 
   dynamic "additional_unattend_content" {
-    for_each = lookup(var.vmss, "additional_unattend_content", null) != null ? [1] : []
+    for_each = var.vmss.additional_unattend_content != null ? [1] : []
 
     content {
-      content = lookup(var.vmss.additional_unattend_content, "content", null)
-      setting = lookup(var.vmss.additional_unattend_content, "setting", null)
+      content = var.vmss.additional_unattend_content.content
+      setting = var.vmss.additional_unattend_content.setting
     }
   }
 
   dynamic "automatic_os_upgrade_policy" {
-    for_each = lookup(var.vmss, "automatic_os_upgrade_policy", null) != null ? [1] : []
+    for_each = var.vmss.automatic_os_upgrade_policy != null ? [1] : []
 
     content {
-      disable_automatic_rollback  = try(var.vmss.automatic_os_upgrade_policy.disable_automatic_rollback, null)
-      enable_automatic_os_upgrade = try(var.vmss.automatic_os_upgrade_policy.enable_automatic_os_upgrade, null)
+      disable_automatic_rollback  = var.vmss.automatic_os_upgrade_policy.disable_automatic_rollback
+      enable_automatic_os_upgrade = var.vmss.automatic_os_upgrade_policy.enable_automatic_os_upgrade
     }
   }
 
   dynamic "automatic_instance_repair" {
-    for_each = lookup(var.vmss, "automatic_instance_repair", null) != null ? [1] : []
+    for_each = var.vmss.automatic_instance_repair != null ? [1] : []
 
     content {
-      enabled      = true
-      grace_period = lookup(var.vmss.automatic_instance_repair, "grace_period", "PT30M")
+      enabled      = var.vmss.automatic_instance_repair.enabled
+      grace_period = var.vmss.automatic_instance_repair.grace_period
     }
   }
 
   dynamic "boot_diagnostics" {
-    for_each = lookup(var.vmss, "boot_diags", null) != null ? [1] : []
+    for_each = lookup(var.vmss, "boot_diagnostics", null) != null ? [1] : []
+
     content {
-      storage_account_uri = lookup(var.vmss.boot_diags, "storage_uri", null)
+      storage_account_uri = lookup(
+        var.vmss.boot_diagnostics, "storage_account_uri", null
+      )
     }
   }
 
@@ -412,25 +487,24 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "gallery_application" {
-    for_each = lookup(var.vmss, "gallery_application", null) != null ? [1] : []
+    for_each = try(
+      var.vmss.gallery_applications, {}
+    )
 
     content {
-      version_id             = lookup(var.vmss.gallery_application, "version_id", null)
-      configuration_blob_uri = lookup(var.vmss.gallery_application, "configuration_blob_uri", null)
-      order                  = lookup(var.vmss.gallery_application, "order", null)
-      tag                    = lookup(var.vmss.gallery_application, "tag", null)
+      tag                    = gallery_application.value.tag
+      order                  = gallery_application.value.order
+      version_id             = gallery_application.value.version_id
+      configuration_blob_uri = gallery_application.value.configuration_blob_uri
     }
   }
 
   dynamic "identity" {
-    for_each = [lookup(var.vmss, "identity", { type = "SystemAssigned", identity_ids = [] })]
+    for_each = lookup(var.vmss, "identity", null) != null ? [var.vmss.identity] : []
 
     content {
-      type = identity.value.type
-      identity_ids = concat(
-        try([azurerm_user_assigned_identity.identity[var.vmss.name].id], []),
-        lookup(identity.value, "identity_ids", [])
-      )
+      type         = identity.value.type
+      identity_ids = identity.value.identity_ids
     }
   }
 
@@ -459,79 +533,75 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "plan" {
-    for_each = lookup(var.vmss, "plan", null) != null ? [1] : []
+    for_each = try(var.vmss.plan, null) != null ? [1] : []
 
     content {
-      name      = lookup(var.vmss.plan, "name", null)
-      publisher = lookup(var.vmss.plan, "publisher", null)
-      product   = lookup(var.vmss.plan, "product", null)
+      name      = var.vmss.plan.name
+      product   = var.vmss.plan.product
+      publisher = var.vmss.plan.publisher
     }
   }
-
 
   dynamic "rolling_upgrade_policy" {
-    for_each = lookup(var.vmss, "rolling_upgrade_policy", null) != null ? [1] : []
+    for_each = var.vmss.rolling_upgrade_policy != null ? [1] : []
 
     content {
-      cross_zone_upgrades_enabled             = lookup(var.vmss.rolling_upgrade_policy, "cross_zone_upgrades_enabled", null)
-      max_batch_instance_percent              = lookup(var.vmss.rolling_upgrade_policy, "max_batch_instance_percent", null)
-      max_unhealthy_instance_percent          = lookup(var.vmss.rolling_upgrade_policy, "max_unhealthy_instance_percent", null)
-      max_unhealthy_upgraded_instance_percent = lookup(var.vmss.rolling_upgrade_policy, "max_unhealthy_upgraded_instance_percent", null)
-      pause_time_between_batches              = lookup(var.vmss.rolling_upgrade_policy, "pause_time_between_batches", null)
-      prioritize_unhealthy_instances_enabled  = lookup(var.vmss.rolling_upgrade_policy, "prioritize_unhealthy_instances_enabled", null)
+      cross_zone_upgrades_enabled             = var.vmss.rolling_upgrade_policy.cross_zone_upgrades_enabled
+      max_batch_instance_percent              = var.vmss.rolling_upgrade_policy.max_batch_instance_percent
+      max_unhealthy_instance_percent          = var.vmss.rolling_upgrade_policy.max_unhealthy_instance_percent
+      max_unhealthy_upgraded_instance_percent = var.vmss.rolling_upgrade_policy.max_unhealthy_upgraded_instance_percent
+      pause_time_between_batches              = var.vmss.rolling_upgrade_policy.pause_time_between_batches
+      prioritize_unhealthy_instances_enabled  = var.vmss.rolling_upgrade_policy.prioritize_unhealthy_instances_enabled
     }
   }
-
-
   dynamic "secret" {
-    for_each = lookup(var.vmss, "secret", null) != null ? [1] : []
+    for_each = try(
+      var.vmss.secrets, {}
+    )
 
     content {
-      key_vault_id = lookup(var.vmss.secret, "key_vault_id", null)
+      key_vault_id = secret.value.key_vault_id
 
-      dynamic "certificate" {
-        for_each = try(var.vmss.secret.certificate, null) != null ? [1] : []
-        content {
-          store = certificate.value.store
-          url   = certificate.value.url
-        }
+      certificate {
+        url   = secret.value.certificate.url
+        store = secret.value.certificate.store
       }
     }
   }
 
   dynamic "scale_in" {
-    for_each = lookup(var.vmss, "scale_in", null) != null ? [1] : []
+    for_each = var.vmss.scale_in != null ? [1] : []
 
     content {
-      rule                   = lookup(var.vmss.scale_in, "rule", null)
-      force_deletion_enabled = lookup(var.vmss.scale_in, "force_deletion_enabled", null)
+      rule                   = var.vmss.scale_in.rule
+      force_deletion_enabled = var.vmss.scale_in.force_deletion_enabled
     }
   }
 
   dynamic "spot_restore" {
-    for_each = lookup(var.vmss, "spot_restore", null) != null ? [1] : []
+    for_each = var.vmss.spot_restore != null ? [1] : []
 
     content {
-      enabled = true
-      timeout = lookup(var.vmss, "timeout", "PT1H")
+      enabled = var.vmss.spot_restore.enabled
+      timeout = var.vmss.spot_restore.timeout
     }
   }
 
   dynamic "termination_notification" {
-    for_each = lookup(var.vmss, "termination_notification", null) != null ? [1] : []
+    for_each = try(var.vmss.termination_notification, null) != null ? [1] : []
 
     content {
-      enabled = true
-      timeout = lookup(var.vmss.termination_notification, "timeout", "PT5M")
+      enabled = var.vmss.termination_notification.enabled
+      timeout = var.vmss.termination_notification.timeout
     }
   }
 
   dynamic "winrm_listener" {
-    for_each = lookup(var.vmss, "winrm_listener", null) != null ? [1] : []
+    for_each = var.vmss.winrm_listener != null ? [1] : []
 
     content {
-      certificate_url = lookup(var.vmss.winrm_listener, "certificate_url", null)
-      protocol        = lookup(var.vmss.winrm_listener, "protocol", null)
+      certificate_url = var.vmss.winrm_listener.certificate_url
+      protocol        = var.vmss.winrm_listener.protocol
     }
   }
 
@@ -541,32 +611,54 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
 }
 
 resource "azurerm_virtual_machine_scale_set_extension" "ext" {
-  for_each = local.ext_keys
+  for_each = length(lookup(var.vmss, "extensions", {})) > 0 ? {
+    for ext_key, ext in lookup(var.vmss, "extensions", {}) :
+    "${var.vmss.name}-${ext_key}" => ext
+  } : {}
 
-  name                         = each.value.name
-  virtual_machine_scale_set_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[each.value.vmss_name].id : azurerm_windows_virtual_machine_scale_set.vmss[each.value.vmss_name].id
+  name                         = lookup(each.value, "name", null) != null ? each.value.name : element(split("-", each.key), length(split("-", each.key)) - 1)
+  virtual_machine_scale_set_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
   publisher                    = each.value.publisher
   type                         = each.value.type
   type_handler_version         = each.value.type_handler_version
   auto_upgrade_minor_version   = each.value.auto_upgrade_minor_version
   settings                     = jsonencode(each.value.settings)
   protected_settings           = jsonencode(each.value.protected_settings)
+
+  force_update_tag            = each.value.force_update_tag
+  provision_after_extensions  = each.value.provision_after_extensions
+  failure_suppression_enabled = each.value.failure_suppression_enabled
+  automatic_upgrade_enabled   = each.value.automatic_upgrade_enabled
+
+  dynamic "protected_settings_from_key_vault" {
+    for_each = try(each.value.protected_settings_from_key_vault, null) != null ? [1] : []
+
+    content {
+      secret_url      = protected_settings_from_key_vault.value.secret_url
+      source_vault_id = protected_settings_from_key_vault.value.source_vault_id
+    }
+  }
 }
 
 # autoscaling
 resource "azurerm_monitor_autoscale_setting" "scaling" {
-  for_each = try(var.vmss.autoscaling, null) != null ? { (var.vmss.name) = var.vmss.autoscaling } : {}
+  for_each = var.vmss.autoscaling != null ? { (var.vmss.name) = var.vmss.autoscaling } : {}
 
-  name                = "scaler"
-  resource_group_name = var.vmss.resource_group
-  location            = var.vmss.location
-  target_resource_id  = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
-  tags                = try(var.vmss.tags, var.tags, null)
+  name = "scaler"
+  resource_group_name = coalesce(
+    var.vmss.resource_group_name, var.resource_group_name
+  )
+
+  location = coalesce(
+    var.vmss.location, var.location
+  )
+  target_resource_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
+  tags               = coalesce(var.vmss.tags, var.tags)
 
   profile {
     name = "default"
     capacity {
-      default = try(var.vmss.autoscaling.default, 1)
+      default = var.vmss.autoscaling.default
       minimum = var.vmss.autoscaling.min
       maximum = var.vmss.autoscaling.max
     }
@@ -597,17 +689,4 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
       }
     }
   }
-}
-
-# user assigned identity
-resource "azurerm_user_assigned_identity" "identity" {
-  for_each = contains(
-    ["UserAssigned", "SystemAssigned, UserAssigned"], try(var.vmss.identity.type, "")
-  ) ? { (var.vmss.name) = {} } : {}
-
-
-  name                = try(var.vmss.identity.name, "uai-${var.vmss.name}")
-  resource_group_name = coalesce(lookup(var.vmss, "resource_group", null), var.resource_group)
-  location            = coalesce(lookup(var.vmss, "location", null), var.location)
-  tags                = try(var.vmss.tags, var.tags, null)
 }

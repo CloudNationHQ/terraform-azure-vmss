@@ -50,17 +50,27 @@ module "kv" {
 
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   keyvault   = module.kv.vault.id
   naming     = local.naming
   depends_on = [module.kv]
 
   vmss = {
-    type           = "linux"
-    name           = module.naming.linux_virtual_machine_scale_set.name
-    location       = module.rg.groups.demo.location
-    resource_group = module.rg.groups.demo.name
+    type                = "linux"
+    name                = module.naming.linux_virtual_machine_scale_set.name
+    location            = module.rg.groups.demo.location
+    resource_group_name = module.rg.groups.demo.name
+
+    source_image_reference = {
+      publisher = "Canonical"
+      offer     = "0001-com-ubuntu-server-jammy"
+      sku       = "22_04-lts"
+    }
+
+    generate_ssh_key = {
+      enable = true
+    }
 
     interfaces = {
       internal = {

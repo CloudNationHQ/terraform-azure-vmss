@@ -38,23 +38,6 @@ locals {
 }
 
 locals {
-  ext_keys = length(lookup(var.vmss, "extensions", {})) > 0 ? {
-    for ext_key, ext in lookup(var.vmss, "extensions", {}) :
-    "${var.vmss.name}-${ext_key}" => {
-
-      name                       = try(ext.name, ext_key)
-      vmss_name                  = var.vmss.name,
-      publisher                  = ext.publisher,
-      type                       = ext.type,
-      type_handler_version       = ext.type_handler_version,
-      settings                   = lookup(ext, "settings", {}),
-      protected_settings         = lookup(ext, "protected_settings", {}),
-      auto_upgrade_minor_version = try(ext.auto_upgrade_minor_version, true)
-    }
-  } : {}
-}
-
-locals {
   rules = flatten([
     for rule_key, rule in try(var.vmss.autoscaling.rules, {}) : {
 
