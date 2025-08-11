@@ -1,4 +1,4 @@
-# Virtual Machine
+# Virtual Machine Scale Set
 
 This Terraform module simplifies the configuration and management of virtual machine scale sets. It offers extensive customization options to match your specific deployment needs, streamlining the provisioning and maintenance process.
 
