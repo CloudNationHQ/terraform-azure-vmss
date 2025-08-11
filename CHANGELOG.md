@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.3.0...v2.0.0) (2025-08-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* refactor module, add type definitions ([#62](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/62))
+
+### Features
+
+* **deps:** bump github.com/gruntwork-io/terratest in /tests ([#54](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/54)) ([4194348](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/41943484dd8ddf59870201198021eb649e719e46))
+* refactor module, add type definitions ([#62](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/62)) ([3f89743](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/3f8974366baed56d9605b0d33f3ed24963ebd55f))
+
 ## [1.3.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.2.0...v1.3.0) (2025-01-20)
 
 
