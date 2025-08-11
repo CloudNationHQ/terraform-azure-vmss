@@ -1,3 +1,23 @@
+# Virtual Machine
+
+This Terraform module simplifies the configuration and management of virtual machine scale sets. It offers extensive customization options to match your specific deployment needs, streamlining the provisioning and maintenance process.
+
+## Features
+
+Flexibility to incorporate multiple extensions
+
+Utilization of Terratest for robust validation
+
+Ability to use multiple interfaces and disks
+
+Supports both system and multiple user assigned identities
+
+Supports custom data integration
+
+Compatible with both Linux and Windows environments
+
+Supports availability sets to enhance fault tolerance and availability
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
