@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.0.0...v2.0.1) (2025-08-18)
+
+
+### Bug Fixes
+
+* update variable types for settings and protected_settings in vmss ([#65](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/65)) ([ca9ef8f](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/ca9ef8f9679bb4faecb08840c015086545a8b372))
+
 ## [2.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v1.3.0...v2.0.0) (2025-08-11)
 
 
