@@ -3,17 +3,17 @@ variable "vmss" {
   type = object({
     name                                              = string
     type                                              = string
-    resource_group_name                               = optional(string, null)
-    location                                          = optional(string, null)
+    resource_group_name                               = optional(string)
+    location                                          = optional(string)
     sku                                               = optional(string, "Standard_DS1_v2")
     instances                                         = optional(number, 2)
     username                                          = optional(string, "adminuser")
     admin_username                                    = optional(string, "adminuser")
-    admin_password                                    = optional(string, null)
-    password                                          = optional(string, null)
-    computer_name_prefix                              = optional(string, null)
-    custom_data                                       = optional(string, null)
-    user_data                                         = optional(string, null)
+    admin_password                                    = optional(string)
+    password                                          = optional(string)
+    computer_name_prefix                              = optional(string)
+    custom_data                                       = optional(string)
+    user_data                                         = optional(string)
     disable_password_authentication                   = optional(bool, true)
     upgrade_mode                                      = optional(string, "Automatic")
     provision_vm_agent                                = optional(bool, true)
@@ -23,51 +23,49 @@ variable "vmss" {
     vtpm_enabled                                      = optional(bool, false)
     zone_balance                                      = optional(bool, false)
     zones                                             = optional(list(string), ["2"])
-    edge_zone                                         = optional(string, null)
+    edge_zone                                         = optional(string)
     encryption_at_host_enabled                        = optional(bool, false)
     extension_operations_enabled                      = optional(bool, true)
     extensions_time_budget                            = optional(string, "PT1H30M")
     overprovision                                     = optional(bool, true)
-    capacity_reservation_group_id                     = optional(string, null)
+    capacity_reservation_group_id                     = optional(string)
     do_not_run_extensions_on_overprovisioned_machines = optional(bool, false)
-    eviction_policy                                   = optional(string, null)
-    health_probe_id                                   = optional(string, null)
-    host_group_id                                     = optional(string, null)
-    max_bid_price                                     = optional(number, null)
-    proximity_placement_group_id                      = optional(string, null)
+    eviction_policy                                   = optional(string)
+    health_probe_id                                   = optional(string)
+    host_group_id                                     = optional(string)
+    max_bid_price                                     = optional(number)
+    proximity_placement_group_id                      = optional(string)
     single_placement_group                            = optional(bool, true)
-    source_image_id                                   = optional(string, null)
-    ultra_ssd_enabled                                 = optional(bool, false)
-    tags                                              = optional(map(string))
-    public_key                                        = optional(string, null)
-    # Windows-specific settings
+    source_image_id                                   = optional(string)
+    additional_capabilities = optional(object({
+      ultra_ssd_enabled = optional(bool, false)
+    }))
+    tags                     = optional(map(string))
+    public_key               = optional(string)
     enable_automatic_updates = optional(bool, true)
     hotpatching_enabled      = optional(bool, false)
-    timezone                 = optional(string, null)
-    patch_mode               = optional(string, null)
-    # Image configuration
+    timezone                 = optional(string)
+    patch_mode               = optional(string)
+    license_type             = optional(string)
     source_image_reference = optional(object({
-      publisher = optional(string)
-      offer     = optional(string)
-      sku       = optional(string)
+      publisher = string
+      offer     = string
+      sku       = string
       version   = optional(string, "latest")
-    }), null)
-    # OS Disk configuration
+    }))
     os_disk = optional(object({
       storage_account_type             = optional(string, "Standard_LRS")
       caching                          = optional(string, "ReadWrite")
-      disk_size_gb                     = optional(number, null)
-      disk_encryption_set_id           = optional(string, null)
-      security_encryption_type         = optional(string, null)
+      disk_size_gb                     = optional(number)
+      disk_encryption_set_id           = optional(string)
+      security_encryption_type         = optional(string)
       write_accelerator_enabled        = optional(bool, false)
-      secure_vm_disk_encryption_set_id = optional(string, null)
+      secure_vm_disk_encryption_set_id = optional(string)
     }), {})
-    # Diff disk settings
     diff_disk_settings = optional(object({
-      option    = optional(string, null)
-      placement = optional(string, null)
-    }), null)
-    # Network interfaces
+      option    = optional(string)
+      placement = optional(string)
+    }))
     interfaces = map(object({
       subnet                                       = string
       primary                                      = optional(bool, false)
@@ -78,23 +76,38 @@ variable "vmss" {
       application_security_group_ids               = optional(list(string), [])
       load_balancer_backend_address_pool_ids       = optional(list(string), [])
       load_balancer_inbound_nat_rules_ids          = optional(list(string), [])
+      auxiliary_mode                               = optional(string)
+      auxiliary_sku                                = optional(string)
+      network_security_group_id                    = optional(string)
+      public_ip_address = optional(object({
+        name                    = optional(string)
+        domain_name_label       = optional(string)
+        idle_timeout_in_minutes = optional(number)
+        ip_tags = optional(map(object({
+          type = string
+          tag  = string
+        })))
+        public_ip_prefix_id = optional(string)
+        version             = optional(string)
+      }))
+      ip_configuration = optional(object({
+        version = optional(string)
+      }))
     }))
-    # Data disks
     disks = optional(map(object({
-      name                           = optional(string, null)
+      name                           = optional(string)
       caching                        = optional(string, "ReadWrite")
       create_option                  = optional(string, "Empty")
       disk_size_gb                   = optional(number, 10)
       lun                            = number
       storage_account_type           = optional(string, "Standard_LRS")
-      disk_encryption_set_id         = optional(string, null)
-      ultra_ssd_disk_iops_read_write = optional(number, null)
-      ultra_ssd_disk_mbps_read_write = optional(number, null)
+      disk_encryption_set_id         = optional(string)
+      ultra_ssd_disk_iops_read_write = optional(number)
+      ultra_ssd_disk_mbps_read_write = optional(number)
       write_accelerator_enabled      = optional(bool, false)
     })), {})
-    # Extensions
     extensions = optional(map(object({
-      name                        = optional(string, null)
+      name                        = optional(string)
       publisher                   = string
       type                        = string
       type_handler_version        = string
@@ -104,96 +117,87 @@ variable "vmss" {
       automatic_upgrade_enabled   = optional(bool, false)
       failure_suppression_enabled = optional(bool, false)
       provision_after_extensions  = optional(list(string), [])
-      force_update_tag            = optional(string, null)
+      force_update_tag            = optional(string)
+      protected_settings_from_key_vault = optional(object({
+        secret_url      = string
+        source_vault_id = string
+      }))
     })), {})
-    # Boot diagnostics
     boot_diagnostics = optional(object({
-      storage_account_uri = optional(string, null)
-    }), null)
-    # Automatic instance repair
+      storage_account_uri = optional(string)
+    }))
     automatic_instance_repair = optional(object({
       enabled      = optional(bool, true)
       grace_period = optional(string, "PT30M")
-    }), null)
-    # Automatic OS upgrade policy
+      action       = optional(string)
+    }))
     automatic_os_upgrade_policy = optional(object({
-      disable_automatic_rollback  = optional(bool, null)
-      enable_automatic_os_upgrade = optional(bool, null)
-    }), null)
-    # Gallery application
-    gallery_application = optional(object({
-      version_id             = optional(string, null)
-      configuration_blob_uri = optional(string, null)
-      order                  = optional(number, null)
-      tag                    = optional(string, null)
-    }), null)
-    # Identity
+      disable_automatic_rollback  = optional(bool)
+      enable_automatic_os_upgrade = optional(bool)
+    }))
+    gallery_applications = optional(map(object({
+      version_id             = string
+      configuration_blob_uri = optional(string)
+      order                  = optional(number)
+      tag                    = optional(string)
+    })), {})
     identity = optional(object({
       type         = optional(string, "SystemAssigned")
       identity_ids = optional(list(string), [])
-      name         = optional(string, null)
-    }), null)
-    # Plan
+      name         = optional(string)
+    }))
     plan = optional(object({
       name      = string
       publisher = string
       product   = string
-    }), null)
-    # Rolling upgrade policy
+    }))
     rolling_upgrade_policy = optional(object({
-      cross_zone_upgrades_enabled             = optional(bool, null)
-      max_batch_instance_percent              = optional(number, null)
-      max_unhealthy_instance_percent          = optional(number, null)
-      max_unhealthy_upgraded_instance_percent = optional(number, null)
-      pause_time_between_batches              = optional(string, null)
-      prioritize_unhealthy_instances_enabled  = optional(bool, null)
-    }), null)
-    # Scale in policy
+      cross_zone_upgrades_enabled             = optional(bool)
+      max_batch_instance_percent              = optional(number)
+      max_unhealthy_instance_percent          = optional(number)
+      max_unhealthy_upgraded_instance_percent = optional(number)
+      pause_time_between_batches              = optional(string)
+      prioritize_unhealthy_instances_enabled  = optional(bool)
+      maximum_surge_instances_enabled         = optional(bool)
+    }))
     scale_in = optional(object({
-      rule                   = optional(string, null)
-      force_deletion_enabled = optional(bool, null)
-    }), null)
-    # Secret
-    secret = optional(object({
+      rule                   = optional(string)
+      force_deletion_enabled = optional(bool)
+    }))
+    secrets = optional(map(object({
       key_vault_id = string
-      certificate = optional(object({
-        store = optional(string, null)
+      certificate = object({
+        store = optional(string)
         url   = string
-      }), null)
-    }), null)
-    # Spot restore
+      })
+    })), {})
     spot_restore = optional(object({
       enabled = optional(bool, true)
       timeout = optional(string, "PT1H")
-    }), null)
-    # Termination notification
+    }))
     termination_notification = optional(object({
       enabled = optional(bool, true)
       timeout = optional(string, "PT5M")
-    }), null)
-    # WinRM listener (Windows only)
+    }))
     winrm_listener = optional(object({
-      certificate_url = optional(string, null)
-      protocol        = optional(string, null)
-    }), null)
-    # Additional unattend content (Windows only)
+      certificate_url = optional(string)
+      protocol        = optional(string)
+    }))
     additional_unattend_content = optional(object({
-      content = optional(string, null)
-      setting = optional(string, null)
-    }), null)
-    # SSH key generation settings (Linux only)
+      content = optional(string)
+      setting = optional(string)
+    }))
     generate_ssh_key = optional(object({
       enable           = optional(bool, false)
       algorithm        = optional(string, "RSA")
       rsa_bits         = optional(number, 4096)
-      ecdsa_curve      = optional(string, null)
-      expiration_date  = optional(string, null)
-      not_before_date  = optional(string, null)
-      value_wo_version = optional(number, null)
-      value_wo         = optional(string, null)
-      content_type     = optional(string, null)
+      ecdsa_curve      = optional(string)
+      expiration_date  = optional(string)
+      not_before_date  = optional(string)
+      value_wo_version = optional(number)
+      value_wo         = optional(string)
+      content_type     = optional(string)
     }), { enable = false })
-    # Password generation settings (Windows only)
     generate_password = optional(object({
       enable           = optional(bool, false)
       length           = optional(number, 24)
@@ -202,23 +206,95 @@ variable "vmss" {
       min_upper        = optional(number, 7)
       min_special      = optional(number, 4)
       min_numeric      = optional(number, 5)
-      numeric          = optional(bool, null)
-      upper            = optional(bool, null)
-      lower            = optional(bool, null)
-      override_special = optional(string, null)
-      expiration_date  = optional(string, null)
-      not_before_date  = optional(string, null)
-      value_wo_version = optional(number, null)
-      value_wo         = optional(string, null)
-      content_type     = optional(string, null)
-      keepers          = optional(map(string), null)
+      numeric          = optional(bool)
+      upper            = optional(bool)
+      lower            = optional(bool)
+      override_special = optional(string)
+      expiration_date  = optional(string)
+      not_before_date  = optional(string)
+      value_wo_version = optional(number)
+      value_wo         = optional(string)
+      content_type     = optional(string)
+      keepers          = optional(map(string))
     }), { enable = false })
-    # Autoscaling configuration
     autoscaling = optional(object({
-      min     = number
-      max     = number
-      default = optional(number, 1)
-      rules = map(object({
+      enabled      = optional(bool, true)
+      name         = optional(string, "scaler")
+      profile_name = optional(string, "default")
+      min          = number
+      max          = number
+      default      = optional(number, 1)
+      fixed_date = optional(object({
+        end      = string
+        start    = string
+        timezone = optional(string)
+      }))
+      recurrence = optional(object({
+        timezone = optional(string)
+        days     = list(string)
+        hours    = list(number)
+        minutes  = list(number)
+      }))
+      notification = optional(object({
+        email = optional(object({
+          send_to_subscription_administrator    = optional(bool)
+          send_to_subscription_co_administrator = optional(bool)
+          custom_emails                         = optional(list(string))
+        }))
+        webhook = optional(list(object({
+          service_uri = string
+          properties  = optional(map(string))
+        })))
+      }))
+      predictive = optional(object({
+        scale_mode      = string
+        look_ahead_time = optional(string)
+      }))
+      profiles = optional(list(object({
+        name = string
+        capacity = object({
+          default = number
+          minimum = number
+          maximum = number
+        })
+        fixed_date = optional(object({
+          end      = string
+          start    = string
+          timezone = optional(string)
+        }))
+        recurrence = optional(object({
+          timezone = optional(string)
+          days     = list(string)
+          hours    = list(number)
+          minutes  = list(number)
+        }))
+        rules = optional(list(object({
+          metric_trigger = object({
+            metric_name        = string
+            metric_resource_id = optional(string)
+            metric_namespace   = optional(string)
+            time_aggregation   = string
+            time_window        = string
+            time_grain         = string
+            operator           = string
+            threshold          = number
+            statistic          = string
+            dimensions = optional(list(object({
+              name     = string
+              operator = string
+              values   = list(string)
+            })))
+            divide_by_instance_count = optional(bool)
+          })
+          scale_action = object({
+            direction = string
+            type      = string
+            value     = string
+            cooldown  = string
+          })
+        })))
+      })))
+      rules = optional(map(object({
         metric_name      = string
         time_aggregation = string
         time_window      = string
@@ -230,8 +306,15 @@ variable "vmss" {
         value            = string
         cooldown         = string
         statistic        = string
-      }))
-    }), null)
+        metric_namespace = optional(string)
+        dimensions = optional(list(object({
+          name     = string
+          operator = string
+          values   = list(string)
+        })))
+        divide_by_instance_count = optional(bool)
+      })))
+    }))
   })
 
   validation {
@@ -266,6 +349,251 @@ variable "vmss" {
     )
     error_message = "Certificate store is only applicable when vmss type is 'windows'. Remove the store property for Linux instances."
   }
+
+  validation {
+    condition = (
+      var.vmss.priority != "Spot" || (
+        var.vmss.eviction_policy != null && var.vmss.max_bid_price != null
+      )
+    )
+    error_message = "When priority is 'Spot', both eviction_policy and max_bid_price must be specified."
+  }
+
+  validation {
+    condition = (
+      var.vmss.max_bid_price == null || (
+        var.vmss.max_bid_price > 0 && var.vmss.max_bid_price <= 5
+      )
+    )
+    error_message = "max_bid_price must be between 0.00001 and 5.0 when specified."
+  }
+
+  validation {
+    condition     = var.vmss.instances >= 0 && var.vmss.instances <= 1000
+    error_message = "instances must be between 0 and 1000."
+  }
+
+  validation {
+    condition     = var.vmss.platform_fault_domain_count >= 1 && var.vmss.platform_fault_domain_count <= 5
+    error_message = "platform_fault_domain_count must be between 1 and 5."
+  }
+
+  validation {
+    condition = (
+      !var.vmss.zone_balance || (
+        var.vmss.zones != null && length(var.vmss.zones) > 1
+      )
+    )
+    error_message = "When zone_balance is true, zones must be specified with at least 2 availability zones."
+  }
+
+  validation {
+    condition = (
+      var.vmss.upgrade_mode != "Rolling" || var.vmss.health_probe_id != null
+    )
+    error_message = "When upgrade_mode is 'Rolling', health_probe_id must be specified."
+  }
+
+  validation {
+    condition = (
+      var.vmss.rolling_upgrade_policy == null || (
+        try(var.vmss.rolling_upgrade_policy.max_batch_instance_percent, 100) >= 5 &&
+        try(var.vmss.rolling_upgrade_policy.max_batch_instance_percent, 100) <= 100 &&
+        try(var.vmss.rolling_upgrade_policy.max_unhealthy_instance_percent, 100) >= 5 &&
+        try(var.vmss.rolling_upgrade_policy.max_unhealthy_instance_percent, 100) <= 100 &&
+        try(var.vmss.rolling_upgrade_policy.max_unhealthy_upgraded_instance_percent, 100) >= 0 &&
+        try(var.vmss.rolling_upgrade_policy.max_unhealthy_upgraded_instance_percent, 100) <= 100
+      )
+    )
+    error_message = "rolling_upgrade_policy percentages: max_batch_instance_percent and max_unhealthy_instance_percent must be 5-100, max_unhealthy_upgraded_instance_percent must be 0-100."
+  }
+
+  validation {
+    condition     = length([for nic_key, nic in var.vmss.interfaces : nic_key if try(nic.primary, false)]) == 1
+    error_message = "Exactly one network interface must be marked as primary."
+  }
+
+  validation {
+    condition = (
+      try(length(var.vmss.disks), 0) == 0 ||
+      length(distinct([for disk_key, disk in var.vmss.disks : disk.lun])) == length(var.vmss.disks)
+    )
+    error_message = "All data disk LUN values must be unique."
+  }
+
+  validation {
+    condition = (
+      try(length(var.vmss.disks), 0) == 0 ||
+      alltrue([for disk_key, disk in var.vmss.disks : disk.lun >= 0 && disk.lun <= 63])
+    )
+    error_message = "Data disk LUN must be between 0 and 63."
+  }
+
+  validation {
+    condition = (
+      try(var.vmss.additional_capabilities.ultra_ssd_enabled, false) == false || (
+        alltrue([
+          for disk_key, disk in var.vmss.disks :
+          disk.storage_account_type != "UltraSSD_LRS" || (
+            disk.ultra_ssd_disk_iops_read_write != null &&
+            disk.ultra_ssd_disk_mbps_read_write != null
+          )
+        ])
+      )
+    )
+    error_message = "When using UltraSSD_LRS storage_account_type, both ultra_ssd_disk_iops_read_write and ultra_ssd_disk_mbps_read_write must be specified."
+  }
+
+  validation {
+    condition = (
+      var.vmss.autoscaling == null || (
+        var.vmss.autoscaling.min <= var.vmss.autoscaling.default &&
+        var.vmss.autoscaling.default <= var.vmss.autoscaling.max &&
+        var.vmss.autoscaling.min >= 0 &&
+        var.vmss.autoscaling.max <= 1000
+      )
+    )
+    error_message = "Autoscaling: min <= default <= max, and min >= 0, max <= 1000."
+  }
+
+  validation {
+    condition = (
+      var.vmss.type == "windows" || (
+        var.vmss.enable_automatic_updates == true &&
+        var.vmss.hotpatching_enabled == false &&
+        var.vmss.timezone == null &&
+        var.vmss.patch_mode == null &&
+        var.vmss.winrm_listener == null &&
+        var.vmss.additional_unattend_content == null &&
+        try(var.vmss.generate_password.enable, false) == false
+      )
+    )
+    error_message = "Windows-specific settings can only be used when vmss type is 'windows'."
+  }
+
+  validation {
+    condition = (
+      var.vmss.type == "linux" || (
+        var.vmss.disable_password_authentication == true &&
+        var.vmss.public_key == null &&
+        try(var.vmss.generate_ssh_key.enable, false) == false
+      )
+    )
+    error_message = "Linux-specific settings can only be used when vmss type is 'linux'."
+  }
+
+  validation {
+    condition = (
+      !var.vmss.encryption_at_host_enabled || (
+        var.vmss.os_disk.security_encryption_type == null ||
+        contains(["VMGuestStateOnly", "DiskWithVMGuestState"], var.vmss.os_disk.security_encryption_type)
+      )
+    )
+    error_message = "When encryption_at_host_enabled is true, security_encryption_type must be 'VMGuestStateOnly' or 'DiskWithVMGuestState', or not specified."
+  }
+
+  validation {
+    condition = (
+      var.vmss.source_image_id != null ||
+      var.vmss.source_image_reference != null ||
+      var.source_image_reference != null
+    )
+    error_message = "Either source_image_id, source_image_reference within vmss, or the global source_image_reference variable must be specified."
+  }
+
+  validation {
+    condition = (
+      var.vmss.eviction_policy == null ||
+      contains(["Deallocate", "Delete"], var.vmss.eviction_policy)
+    )
+    error_message = "eviction_policy must be either 'Deallocate' or 'Delete' when specified."
+  }
+
+  validation {
+    condition = (
+      try(length(var.vmss.disks), 0) == 0 ||
+      alltrue([
+        for disk_key, disk in var.vmss.disks :
+        disk.disk_size_gb >= 1 && disk.disk_size_gb <= 32767
+      ])
+    )
+    error_message = "Data disk disk_size_gb must be between 1 and 32767 GB."
+  }
+
+  validation {
+    condition = (
+      var.vmss.diff_disk_settings == null ||
+      (var.vmss.diff_disk_settings.option != null && var.vmss.diff_disk_settings.placement != null)
+    )
+    error_message = "When diff_disk_settings is specified, both option and placement must be provided."
+  }
+
+  validation {
+    condition = (
+      try(var.vmss.generate_ssh_key.enable, false) == false ||
+      (
+        contains(["RSA", "ECDSA", "ED25519"], var.vmss.generate_ssh_key.algorithm) &&
+        (
+          var.vmss.generate_ssh_key.algorithm != "RSA" ||
+          contains([2048, 3072, 4096], var.vmss.generate_ssh_key.rsa_bits)
+        ) &&
+        (
+          var.vmss.generate_ssh_key.algorithm != "ECDSA" ||
+          var.vmss.generate_ssh_key.ecdsa_curve != null
+        )
+      )
+    )
+    error_message = "SSH key generation: algorithm must be RSA/ECDSA/ED25519. RSA requires rsa_bits (2048/3072/4096), ECDSA requires ecdsa_curve."
+  }
+
+  validation {
+    condition = (
+      try(var.vmss.generate_password.enable, false) == false ||
+      (
+        var.vmss.generate_password.length >= 8 &&
+        var.vmss.generate_password.length <= 128 &&
+        var.vmss.generate_password.min_lower >= 0 &&
+        var.vmss.generate_password.min_upper >= 0 &&
+        var.vmss.generate_password.min_special >= 0 &&
+        var.vmss.generate_password.min_numeric >= 0 &&
+        (var.vmss.generate_password.min_lower + var.vmss.generate_password.min_upper +
+        var.vmss.generate_password.min_special + var.vmss.generate_password.min_numeric) <= var.vmss.generate_password.length
+      )
+    )
+    error_message = "Password generation: length 8-128, minimum character counts must not exceed total length."
+  }
+
+  validation {
+    condition = (
+      var.vmss.spot_restore == null ||
+      can(regex("^PT[0-9]+[HM]$", var.vmss.spot_restore.timeout))
+    )
+    error_message = "spot_restore timeout must be in ISO 8601 duration format (e.g., PT1H, PT30M)."
+  }
+
+  validation {
+    condition = (
+      var.vmss.termination_notification == null ||
+      can(regex("^PT[0-9]+M$", var.vmss.termination_notification.timeout))
+    )
+    error_message = "termination_notification timeout must be in ISO 8601 duration format with minutes (e.g., PT5M, PT15M)."
+  }
+
+  validation {
+    condition     = can(regex("^PT[0-9]+[HM][0-9]*[M]?$", var.vmss.extensions_time_budget))
+    error_message = "extensions_time_budget must be in ISO 8601 duration format (e.g., PT1H30M, PT90M)."
+  }
+
+  validation {
+    condition = (
+      var.vmss.gallery_applications == null || length(var.vmss.gallery_applications) == 0 ||
+      alltrue([
+        for app_key, app in var.vmss.gallery_applications :
+        app.version_id != null && app.version_id != ""
+      ])
+    )
+    error_message = "Gallery applications must have a non-empty version_id specified."
+  }
 }
 
 variable "naming" {
@@ -278,6 +606,14 @@ variable "keyvault" {
   description = "keyvault id to store secrets"
   type        = string
   default     = null
+
+  validation {
+    condition = (
+      var.keyvault == null ||
+      can(regex("^/subscriptions/[a-f0-9-]{36}/resourceGroups/[^/]+/providers/Microsoft.KeyVault/vaults/[^/]+$", var.keyvault))
+    )
+    error_message = "keyvault must be a valid Azure Key Vault resource ID when specified."
+  }
 }
 
 variable "location" {
@@ -304,7 +640,7 @@ variable "source_image_reference" {
     publisher = string
     offer     = string
     sku       = string
-    version   = string
+    version   = optional(string, "latest")
   })
   default = null
 }
