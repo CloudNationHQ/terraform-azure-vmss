@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.0.1...v2.1.0) (2025-09-16)
+
+
+### Features
+
+* fix some faulty type definitions and small code refactor ([#70](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/70)) ([bbc5ad7](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/bbc5ad77108e4a1019c3863684bc47687742ac59))
+
 ## [2.0.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.0.0...v2.0.1) (2025-08-18)
 
 
