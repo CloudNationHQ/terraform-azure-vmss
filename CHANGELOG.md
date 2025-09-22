@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.0...v2.1.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* jsonencoded settings ([#73](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/73)) ([c2a07f9](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/c2a07f9ae0b45a82622acf8d64e74d839a67b4fa))
+
 ## [2.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.0.1...v2.1.0) (2025-09-16)
 
 
