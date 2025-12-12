@@ -10,7 +10,6 @@ variable "vmss" {
     username                                          = optional(string, "adminuser")
     admin_username                                    = optional(string, "adminuser")
     admin_password                                    = optional(string)
-    password                                          = optional(string)
     computer_name_prefix                              = optional(string)
     custom_data                                       = optional(string)
     user_data                                         = optional(string)
@@ -197,7 +196,7 @@ variable "vmss" {
       value_wo_version = optional(number)
       value_wo         = optional(string)
       content_type     = optional(string)
-    }), { enable = false })
+    }))
     generate_password = optional(object({
       enable           = optional(bool, false)
       length           = optional(number, 24)
@@ -335,12 +334,12 @@ variable "vmss" {
   validation {
     condition = (
       var.vmss.type == "linux" ? (
-        var.vmss.public_key != null || var.vmss.password != null || try(var.vmss.generate_ssh_key.enable, false) == true
+        var.vmss.public_key != null || var.vmss.admin_password != null || try(var.vmss.generate_ssh_key.enable, false) == true || try(var.vmss.generate_password.enable, false) == true
         ) : (
-        var.vmss.password != null || try(var.vmss.generate_password.enable, false) == true
+        var.vmss.admin_password != null || try(var.vmss.generate_password.enable, false) == true
       )
     )
-    error_message = "For Linux VMSS, either 'public_key', 'password', or 'generate_ssh_key.enable' must be provided. For Windows VMSS, either 'password' or 'generate_password.enable' must be provided."
+    error_message = "For Linux VMSS, either 'public_key', 'admin_password', 'generate_ssh_key.enable', or 'generate_password.enable' must be provided. For Windows VMSS, either 'admin_password' or 'generate_password.enable' must be provided."
   }
 }
 
