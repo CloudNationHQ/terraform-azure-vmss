@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.1.2](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.1...v2.1.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* update password property ([#82](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/82)) ([bbbf10f](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/bbbf10f133d556ccfab954cd8c757b7509f896f4))
+
+## [2.1.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.0...v2.1.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* jsonencoded settings ([#73](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/73)) ([c2a07f9](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/c2a07f9ae0b45a82622acf8d64e74d839a67b4fa))
+
+## [2.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.0.1...v2.1.0) (2025-09-16)
+
+
+### Features
+
+* fix some faulty type definitions and small code refactor ([#70](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/70)) ([bbc5ad7](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/bbc5ad77108e4a1019c3863684bc47687742ac59))
+
 ## [2.0.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.0.0...v2.0.1) (2025-08-18)
 
 
