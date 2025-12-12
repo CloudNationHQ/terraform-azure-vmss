@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.2...v2.2.0) (2025-12-12)
+
+
+### Features
+
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#81](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/81)) ([cd1d320](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/cd1d32010d30e6f979721550bc038073282ea7a1))
+* **deps:** bump github.com/ulikunitz/xz from 0.5.10 to 0.5.14 in /tests ([#67](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/67)) ([40bc6fb](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/40bc6fb04a0b7d89956ec597691d863ec444b8ed))
+* **deps:** bump golang.org/x/crypto from 0.36.0 to 0.45.0 in /tests ([#76](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/76)) ([7765bc6](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/7765bc6f16835cffc188d4579bf550ff1a5f009f))
+
 ## [2.1.2](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.1...v2.1.2) (2025-12-12)
 
 
