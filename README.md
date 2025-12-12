@@ -57,11 +57,11 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 4.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (4.55.0)
 
-- <a name="provider_random"></a> [random](#provider\_random) (~> 3.6)
+- <a name="provider_random"></a> [random](#provider\_random) (3.7.2)
 
-- <a name="provider_tls"></a> [tls](#provider\_tls) (~> 4.0)
+- <a name="provider_tls"></a> [tls](#provider\_tls) (4.1.0)
 
 ## Resources
 
@@ -99,7 +99,6 @@ object({
     username                                          = optional(string, "adminuser")
     admin_username                                    = optional(string, "adminuser")
     admin_password                                    = optional(string)
-    password                                          = optional(string)
     computer_name_prefix                              = optional(string)
     custom_data                                       = optional(string)
     user_data                                         = optional(string)
@@ -286,7 +285,7 @@ object({
       value_wo_version = optional(number)
       value_wo         = optional(string)
       content_type     = optional(string)
-    }), { enable = false })
+    }))
     generate_password = optional(object({
       enable           = optional(bool, false)
       length           = optional(number, 24)
