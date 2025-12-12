@@ -21,7 +21,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   sku                                               = var.vmss.sku
   instances                                         = var.vmss.instances
   admin_username                                    = var.vmss.admin_username
-  admin_password                                    = var.vmss.admin_password
+  admin_password                                    = var.vmss.disable_password_authentication == false && var.vmss.admin_password != null ? var.vmss.admin_password : var.vmss.disable_password_authentication == false ? try(azurerm_key_vault_secret.secret[var.vmss.name].value, null) : null
   upgrade_mode                                      = var.vmss.upgrade_mode
   provision_vm_agent                                = var.vmss.provision_vm_agent
   platform_fault_domain_count                       = var.vmss.platform_fault_domain_count
@@ -56,7 +56,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   )
 
   disable_password_authentication = (
-    var.vmss.password != null ? false : var.vmss.public_key != null ||
+    var.vmss.admin_password != null ? false : var.vmss.public_key != null ||
     contains(keys(tls_private_key.tls_key), var.vmss.name) ? true : var.vmss.disable_password_authentication
   )
 
@@ -353,7 +353,7 @@ resource "azurerm_key_vault_secret" "tls_private_key_secret" {
 }
 
 resource "random_password" "password" {
-  for_each = var.vmss.type == "windows" && var.vmss.admin_password == null ? { (var.vmss.name) = true } : {}
+  for_each = try(var.vmss.generate_password.enable, false) ? { (var.vmss.name) = true } : {}
 
   length           = var.vmss.generate_password.length
   special          = var.vmss.generate_password.special
@@ -369,7 +369,7 @@ resource "random_password" "password" {
 }
 
 resource "azurerm_key_vault_secret" "secret" {
-  for_each = var.vmss.type == "windows" && var.vmss.admin_password == null ? { (var.vmss.name) = true } : {}
+  for_each = try(var.vmss.generate_password.enable, false) ? { (var.vmss.name) = true } : {}
 
   name = format(
     "%s-%s", "kvs", var.vmss.name
@@ -406,7 +406,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
     ), var.location
   )
 
-  admin_password                                    = var.vmss.admin_password != null ? var.vmss.admin_password : azurerm_key_vault_secret.secret[var.vmss.name].value
+  admin_password                                    = var.vmss.admin_password != null ? var.vmss.admin_password : try(azurerm_key_vault_secret.secret[var.vmss.name].value, null)
   enable_automatic_updates                          = var.vmss.enable_automatic_updates
   license_type                                      = var.vmss.license_type
   timezone                                          = var.vmss.timezone
