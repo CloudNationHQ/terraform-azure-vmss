@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.1...v2.1.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* update password property ([#82](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/82)) ([bbbf10f](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/bbbf10f133d556ccfab954cd8c757b7509f896f4))
+
 ## [2.1.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.0...v2.1.1) (2025-09-22)
 
 
