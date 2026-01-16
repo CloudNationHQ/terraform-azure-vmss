@@ -305,7 +305,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
 
 # secrets
 resource "tls_private_key" "tls_key" {
-  for_each = var.vmss.type == "linux" && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
+  for_each = (var.vmss.type == "linux" || var.vmss.type == "flex") && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
 
   algorithm   = var.vmss.generate_ssh_key.algorithm
   rsa_bits    = var.vmss.generate_ssh_key.rsa_bits
@@ -313,7 +313,7 @@ resource "tls_private_key" "tls_key" {
 }
 
 resource "azurerm_key_vault_secret" "tls_public_key_secret" {
-  for_each = var.vmss.type == "linux" && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
+  for_each = (var.vmss.type == "linux" || var.vmss.type == "flex") && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
 
   name = format(
     "%s-%s-%s", "kvs", var.vmss.name, "pub"
@@ -333,7 +333,7 @@ resource "azurerm_key_vault_secret" "tls_public_key_secret" {
 }
 
 resource "azurerm_key_vault_secret" "tls_private_key_secret" {
-  for_each = var.vmss.type == "linux" && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
+  for_each = (var.vmss.type == "linux" || var.vmss.type == "flex") && try(var.vmss.generate_ssh_key.enable, false) == true ? { (var.vmss.name) = true } : {}
 
   name = format(
     "%s-%s-%s", "kvs", var.vmss.name, "priv"
@@ -417,6 +417,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   capacity_reservation_group_id = var.vmss.capacity_reservation_group_id
   source_image_id               = var.vmss.source_image_id
   user_data_base64              = var.vmss.user_data != null ? base64encode(var.vmss.user_data) : null
+  instances                     = var.vmss.instances
+  sku_name                      = var.vmss.sku
+  eviction_policy               = var.vmss.eviction_policy
+  max_bid_price                 = var.vmss.max_bid_price
+  priority                      = var.vmss.priority
+  license_type                  = var.vmss.license_type
 
   tags = coalesce(
     var.vmss.tags, var.tags
@@ -457,6 +463,70 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
     }
   }
 
+  dynamic "network_interface" {
+    for_each = var.vmss.interfaces
+
+    content {
+      name                          = "nic-${network_interface.key}"
+      primary                       = network_interface.value.primary
+      dns_servers                   = network_interface.value.dns_servers
+      enable_accelerated_networking = network_interface.value.enable_accelerated_networking
+      enable_ip_forwarding          = network_interface.value.enable_ip_forwarding
+      network_security_group_id     = network_interface.value.network_security_group_id
+
+      ip_configuration {
+        name                                   = "ipconf-${network_interface.key}"
+        primary                                = network_interface.value.primary
+        subnet_id                              = network_interface.value.subnet
+        application_security_group_ids         = network_interface.value.application_security_group_ids
+        load_balancer_backend_address_pool_ids = network_interface.value.load_balancer_backend_address_pool_ids
+        version                                = network_interface.value.ip_configuration != null ? network_interface.value.ip_configuration.version : null
+
+        dynamic "public_ip_address" {
+          for_each = network_interface.value.public_ip_address != null ? [network_interface.value.public_ip_address] : []
+
+          content {
+            name                    = public_ip_address.value.name != null ? public_ip_address.value.name : "pip-${network_interface.key}"
+            domain_name_label       = public_ip_address.value.domain_name_label
+            idle_timeout_in_minutes = public_ip_address.value.idle_timeout_in_minutes
+            public_ip_prefix_id     = public_ip_address.value.public_ip_prefix_id
+            version                 = public_ip_address.value.version
+
+            dynamic "ip_tag" {
+              for_each = try(
+                public_ip_address.value.ip_tags, {}
+              )
+
+              content {
+                tag  = ip_tag.value.tag
+                type = ip_tag.value.type
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  dynamic "os_disk" {
+    for_each = [1]
+
+    content {
+      storage_account_type = var.vmss.os_disk.storage_account_type
+      caching              = var.vmss.os_disk.caching
+      disk_size_gb         = var.vmss.os_disk.disk_size_gb
+
+      dynamic "diff_disk_settings" {
+        for_each = var.vmss.diff_disk_settings != null ? [var.vmss.diff_disk_settings] : []
+
+        content {
+          option    = diff_disk_settings.value.option
+          placement = diff_disk_settings.value.placement
+        }
+      }
+    }
+  }
+
   dynamic "os_profile" {
     for_each = var.vmss.source_image_id != null || var.vmss.source_image_reference != null || var.source_image_reference != null ? [1] : []
 
@@ -474,6 +544,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
           admin_username     = var.vmss.admin_username
           admin_password     = var.vmss.admin_password != null ? var.vmss.admin_password : var.vmss.disable_password_authentication == false ? try(azurerm_key_vault_secret.secret[var.vmss.name].value, null) : null
           provision_vm_agent = var.vmss.provision_vm_agent
+          computer_name_prefix = coalesce(
+            var.vmss.computer_name_prefix, var.vmss.name
+          )
+          patch_assessment_mode = var.vmss.patch_assessment_mode
+          patch_mode            = var.vmss.patch_mode
 
           dynamic "admin_ssh_key" {
             for_each = var.vmss.public_key != null || contains(keys(tls_private_key.tls_key), var.vmss.name) ? [1] : []
@@ -481,6 +556,24 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
             content {
               username   = var.vmss.username
               public_key = var.vmss.public_key != null ? var.vmss.public_key : tls_private_key.tls_key[var.vmss.name].public_key_openssh
+            }
+          }
+
+          dynamic "secret" {
+            for_each = try(
+              var.vmss.secrets, {}
+            )
+
+            content {
+              key_vault_id = secret.value.key_vault_id
+
+              dynamic "certificate" {
+                for_each = [secret.value.certificate]
+
+                content {
+                  url = certificate.value.url
+                }
+              }
             }
           }
         }
@@ -495,8 +588,21 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
           enable_automatic_updates = var.vmss.enable_automatic_updates
           provision_vm_agent       = var.vmss.provision_vm_agent
           timezone                 = var.vmss.timezone
-          patch_mode               = var.vmss.patch_mode
-          hotpatching_enabled      = var.vmss.hotpatching_enabled
+          computer_name_prefix = coalesce(
+            var.vmss.computer_name_prefix, var.vmss.name
+          )
+          patch_assessment_mode = var.vmss.patch_assessment_mode
+          patch_mode            = var.vmss.patch_mode
+          hotpatching_enabled   = var.vmss.hotpatching_enabled
+
+          dynamic "additional_unattend_content" {
+            for_each = var.vmss.additional_unattend_content != null ? [var.vmss.additional_unattend_content] : []
+
+            content {
+              content = additional_unattend_content.value.content
+              setting = additional_unattend_content.value.setting
+            }
+          }
 
           dynamic "secret" {
             for_each = try(
@@ -506,9 +612,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
             content {
               key_vault_id = secret.value.key_vault_id
 
-              certificate {
-                url   = secret.value.certificate.url
-                store = secret.value.certificate.store
+              dynamic "certificate" {
+                for_each = [secret.value.certificate]
+
+                content {
+                  url   = certificate.value.url
+                  store = certificate.value.store
+                }
               }
             }
           }
@@ -523,6 +633,37 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
           }
         }
       }
+    }
+  }
+
+  dynamic "data_disk" {
+    for_each = var.vmss.disks
+
+    content {
+      caching              = data_disk.value.caching
+      create_option        = data_disk.value.create_option
+      disk_size_gb         = data_disk.value.disk_size_gb
+      lun                  = data_disk.value.lun
+      storage_account_type = data_disk.value.storage_account_type
+    }
+  }
+
+  dynamic "source_image_reference" {
+    for_each = var.vmss.source_image_id == null ? [true] : []
+
+    content {
+      publisher = try(
+        var.vmss.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
+      )
+      offer = try(
+        var.vmss.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
+      )
+      sku = try(
+        var.vmss.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
+      )
+      version = try(
+        var.vmss.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
+      )
     }
   }
 
