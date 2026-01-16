@@ -57,11 +57,11 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (4.55.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 4.0)
 
-- <a name="provider_random"></a> [random](#provider\_random) (3.7.2)
+- <a name="provider_random"></a> [random](#provider\_random) (~> 3.6)
 
-- <a name="provider_tls"></a> [tls](#provider\_tls) (4.1.0)
+- <a name="provider_tls"></a> [tls](#provider\_tls) (~> 4.0)
 
 ## Resources
 
@@ -72,6 +72,7 @@ The following resources are used by this module:
 - [azurerm_key_vault_secret.tls_public_key_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
 - [azurerm_linux_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) (resource)
 - [azurerm_monitor_autoscale_setting.scaling](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_autoscale_setting) (resource)
+- [azurerm_orchestrated_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/orchestrated_virtual_machine_scale_set) (resource)
 - [azurerm_virtual_machine_scale_set_extension.ext](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_scale_set_extension) (resource)
 - [azurerm_windows_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set) (resource)
 - [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) (resource)
@@ -125,6 +126,10 @@ object({
     proximity_placement_group_id                      = optional(string)
     single_placement_group                            = optional(bool, true)
     source_image_id                                   = optional(string)
+    priority_mix = optional(object({
+      base_regular_count            = optional(number)
+      regular_percentage_above_base = optional(number)
+    }))
     additional_capabilities = optional(object({
       ultra_ssd_enabled = optional(bool, false)
     }))

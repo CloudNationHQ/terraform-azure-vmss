@@ -388,6 +388,177 @@ resource "azurerm_key_vault_secret" "secret" {
   )
 }
 
+# scale set flex (orchestrated)
+resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
+  for_each = var.vmss.type == "flex" ? {
+    (var.vmss.name) = true
+  } : {}
+
+  resource_group_name = coalesce(
+    lookup(
+      var.vmss, "resource_group_name", null
+    ), var.resource_group_name
+  )
+
+  location = coalesce(
+    lookup(var.vmss, "location", null
+    ), var.location
+  )
+
+  name                          = var.vmss.name
+  platform_fault_domain_count   = var.vmss.platform_fault_domain_count
+  proximity_placement_group_id  = var.vmss.proximity_placement_group_id
+  single_placement_group        = var.vmss.single_placement_group
+  zone_balance                  = var.vmss.zone_balance
+  zones                         = var.vmss.zones
+  encryption_at_host_enabled    = var.vmss.encryption_at_host_enabled
+  extension_operations_enabled  = var.vmss.extension_operations_enabled
+  extensions_time_budget        = var.vmss.extensions_time_budget
+  capacity_reservation_group_id = var.vmss.capacity_reservation_group_id
+  source_image_id               = var.vmss.source_image_id
+  user_data_base64              = var.vmss.user_data != null ? base64encode(var.vmss.user_data) : null
+
+  tags = coalesce(
+    var.vmss.tags, var.tags
+  )
+
+  dynamic "additional_capabilities" {
+    for_each = var.vmss.additional_capabilities != null ? [var.vmss.additional_capabilities] : []
+
+    content {
+      ultra_ssd_enabled = additional_capabilities.value.ultra_ssd_enabled
+    }
+  }
+
+  dynamic "automatic_instance_repair" {
+    for_each = var.vmss.automatic_instance_repair != null ? [var.vmss.automatic_instance_repair] : []
+
+    content {
+      enabled      = automatic_instance_repair.value.enabled
+      grace_period = automatic_instance_repair.value.grace_period
+      action       = automatic_instance_repair.value.action
+    }
+  }
+
+  dynamic "boot_diagnostics" {
+    for_each = lookup(var.vmss, "boot_diagnostics", null) != null ? [var.vmss.boot_diagnostics] : []
+
+    content {
+      storage_account_uri = boot_diagnostics.value.storage_account_uri
+    }
+  }
+
+  dynamic "identity" {
+    for_each = lookup(var.vmss, "identity", null) != null ? [var.vmss.identity] : []
+
+    content {
+      type         = identity.value.type
+      identity_ids = identity.value.identity_ids
+    }
+  }
+
+  dynamic "os_profile" {
+    for_each = var.vmss.source_image_id != null || var.vmss.source_image_reference != null || var.source_image_reference != null ? [1] : []
+
+    content {
+      custom_data = var.vmss.custom_data != null ? base64encode(var.vmss.custom_data) : null
+
+      dynamic "linux_configuration" {
+        for_each = var.vmss.type == "flex" && (var.vmss.disable_password_authentication != null || var.vmss.public_key != null || contains(keys(tls_private_key.tls_key), var.vmss.name)) ? [1] : []
+
+        content {
+          disable_password_authentication = (
+            var.vmss.admin_password != null ? false : var.vmss.public_key != null ||
+            contains(keys(tls_private_key.tls_key), var.vmss.name) ? true : var.vmss.disable_password_authentication
+          )
+          admin_username     = var.vmss.admin_username
+          admin_password     = var.vmss.admin_password != null ? var.vmss.admin_password : var.vmss.disable_password_authentication == false ? try(azurerm_key_vault_secret.secret[var.vmss.name].value, null) : null
+          provision_vm_agent = var.vmss.provision_vm_agent
+
+          dynamic "admin_ssh_key" {
+            for_each = var.vmss.public_key != null || contains(keys(tls_private_key.tls_key), var.vmss.name) ? [1] : []
+
+            content {
+              username   = var.vmss.username
+              public_key = var.vmss.public_key != null ? var.vmss.public_key : tls_private_key.tls_key[var.vmss.name].public_key_openssh
+            }
+          }
+        }
+      }
+
+      dynamic "windows_configuration" {
+        for_each = var.vmss.type == "flex" && (var.vmss.enable_automatic_updates != null || var.vmss.timezone != null || var.vmss.admin_password != null) ? [1] : []
+
+        content {
+          admin_username           = var.vmss.admin_username
+          admin_password           = var.vmss.admin_password != null ? var.vmss.admin_password : try(azurerm_key_vault_secret.secret[var.vmss.name].value, null)
+          enable_automatic_updates = var.vmss.enable_automatic_updates
+          provision_vm_agent       = var.vmss.provision_vm_agent
+          timezone                 = var.vmss.timezone
+          patch_mode               = var.vmss.patch_mode
+          hotpatching_enabled      = var.vmss.hotpatching_enabled
+
+          dynamic "secret" {
+            for_each = try(
+              var.vmss.secrets, {}
+            )
+
+            content {
+              key_vault_id = secret.value.key_vault_id
+
+              certificate {
+                url   = secret.value.certificate.url
+                store = secret.value.certificate.store
+              }
+            }
+          }
+
+          dynamic "winrm_listener" {
+            for_each = var.vmss.winrm_listener != null ? [var.vmss.winrm_listener] : []
+
+            content {
+              certificate_url = winrm_listener.value.certificate_url
+              protocol        = winrm_listener.value.protocol
+            }
+          }
+        }
+      }
+    }
+  }
+
+  dynamic "plan" {
+    for_each = var.vmss.plan != null ? [var.vmss.plan] : []
+
+    content {
+      name      = plan.value.name
+      publisher = plan.value.publisher
+      product   = plan.value.product
+    }
+  }
+
+  dynamic "priority_mix" {
+    for_each = var.vmss.priority == "Spot" && var.vmss.priority_mix != null ? [var.vmss.priority_mix] : []
+
+    content {
+      base_regular_count            = priority_mix.value.base_regular_count
+      regular_percentage_above_base = priority_mix.value.regular_percentage_above_base
+    }
+  }
+
+  dynamic "termination_notification" {
+    for_each = var.vmss.termination_notification != null ? [var.vmss.termination_notification] : []
+
+    content {
+      enabled = termination_notification.value.enabled
+      timeout = termination_notification.value.timeout
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [instances]
+  }
+}
+
 # scale set windows
 resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
   for_each = var.vmss.type == "windows" ? {
@@ -705,7 +876,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "ext" {
   } : {}
 
   name                         = lookup(each.value, "name", null) != null ? each.value.name : element(split("-", each.key), length(split("-", each.key)) - 1)
-  virtual_machine_scale_set_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
+  virtual_machine_scale_set_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : var.vmss.type == "windows" ? azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_orchestrated_virtual_machine_scale_set.vmss[var.vmss.name].id
   publisher                    = each.value.publisher
   type                         = each.value.type
   type_handler_version         = each.value.type_handler_version
@@ -744,7 +915,7 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
     var.vmss.location, var.location
   )
 
-  target_resource_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
+  target_resource_id = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : var.vmss.type == "windows" ? azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_orchestrated_virtual_machine_scale_set.vmss[var.vmss.name].id
   enabled            = var.vmss.autoscaling.enabled
 
   tags = coalesce(
@@ -768,7 +939,7 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
       content {
         metric_trigger {
           metric_name              = rule.value.metric_name
-          metric_resource_id       = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id
+          metric_resource_id       = var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : var.vmss.type == "windows" ? azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_orchestrated_virtual_machine_scale_set.vmss[var.vmss.name].id
           metric_namespace         = rule.value.metric_namespace
           time_aggregation         = rule.value.time_aggregation
           time_window              = rule.value.time_window
@@ -865,7 +1036,7 @@ resource "azurerm_monitor_autoscale_setting" "scaling" {
         content {
           metric_trigger {
             metric_name              = rule.value.metric_trigger.metric_name
-            metric_resource_id       = try(rule.value.metric_trigger.metric_resource_id, var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id)
+            metric_resource_id       = try(rule.value.metric_trigger.metric_resource_id, var.vmss.type == "linux" ? azurerm_linux_virtual_machine_scale_set.vmss[var.vmss.name].id : var.vmss.type == "windows" ? azurerm_windows_virtual_machine_scale_set.vmss[var.vmss.name].id : azurerm_orchestrated_virtual_machine_scale_set.vmss[var.vmss.name].id)
             metric_namespace         = rule.value.metric_trigger.metric_namespace
             time_aggregation         = rule.value.metric_trigger.time_aggregation
             time_window              = rule.value.metric_trigger.time_window

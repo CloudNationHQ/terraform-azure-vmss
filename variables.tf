@@ -36,6 +36,10 @@ variable "vmss" {
     proximity_placement_group_id                      = optional(string)
     single_placement_group                            = optional(bool, true)
     source_image_id                                   = optional(string)
+    priority_mix = optional(object({
+      base_regular_count            = optional(number)
+      regular_percentage_above_base = optional(number)
+    }))
     additional_capabilities = optional(object({
       ultra_ssd_enabled = optional(bool, false)
     }))
@@ -317,8 +321,8 @@ variable "vmss" {
   })
 
   validation {
-    condition     = contains(["windows", "linux"], var.vmss.type)
-    error_message = "The vmss type must be either 'windows' or 'linux'."
+    condition     = contains(["windows", "linux", "flex"], var.vmss.type)
+    error_message = "The vmss type must be either 'windows', 'linux', or 'flex'."
   }
 
   validation {
