@@ -534,7 +534,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
       custom_data = var.vmss.custom_data != null ? base64encode(var.vmss.custom_data) : null
 
       dynamic "linux_configuration" {
-        for_each = var.vmss.type == "flex" && (var.vmss.disable_password_authentication != null || var.vmss.public_key != null || contains(keys(tls_private_key.tls_key), var.vmss.name)) ? [1] : []
+        for_each = var.vmss.type == "flex" && (var.vmss.public_key != null || contains(keys(tls_private_key.tls_key), var.vmss.name) || try(var.vmss.generate_ssh_key.enable, false) == true) ? [1] : []
 
         content {
           disable_password_authentication = (
@@ -580,7 +580,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
       }
 
       dynamic "windows_configuration" {
-        for_each = var.vmss.type == "flex" && (var.vmss.enable_automatic_updates != null || var.vmss.timezone != null || var.vmss.admin_password != null) ? [1] : []
+        for_each = var.vmss.type == "flex" && var.vmss.public_key == null && !contains(keys(tls_private_key.tls_key), var.vmss.name) && try(var.vmss.generate_ssh_key.enable, false) == false && (var.vmss.enable_automatic_updates != null || var.vmss.timezone != null || var.vmss.license_type != null || var.vmss.hotpatching_enabled != null) ? [1] : []
 
         content {
           admin_username           = var.vmss.admin_username
