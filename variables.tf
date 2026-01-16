@@ -49,6 +49,7 @@ variable "vmss" {
     hotpatching_enabled      = optional(bool, false)
     timezone                 = optional(string)
     patch_mode               = optional(string)
+    patch_assessment_mode    = optional(string)
     license_type             = optional(string)
     source_image_reference = optional(object({
       publisher = string
