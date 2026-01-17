@@ -696,9 +696,33 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [instances]
+  dynamic "extension" {
+    for_each = lookup(var.vmss, "extensions", {})
+
+    content {
+      name                                = lookup(extension.value, "name", extension.key)
+      publisher                           = extension.value.publisher
+      type                                = extension.value.type
+      type_handler_version                = extension.value.type_handler_version
+      settings                            = length(try(extension.value.settings, {})) > 0 ? jsonencode(extension.value.settings) : null
+      protected_settings                  = length(try(extension.value.protected_settings, {})) > 0 ? jsonencode(extension.value.protected_settings) : null
+      failure_suppression_enabled         = extension.value.failure_suppression_enabled
+      force_extension_execution_on_change = extension.value.force_update_tag
+
+      dynamic "protected_settings_from_key_vault" {
+        for_each = extension.value.protected_settings_from_key_vault != null ? [extension.value.protected_settings_from_key_vault] : []
+
+        content {
+          secret_url      = protected_settings_from_key_vault.value.secret_url
+          source_vault_id = protected_settings_from_key_vault.value.source_vault_id
+        }
+      }
+    }
   }
+
+  # lifecycle {
+  #   ignore_changes = [instances]
+  # }
 }
 
 # scale set windows
@@ -1012,7 +1036,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
 }
 
 resource "azurerm_virtual_machine_scale_set_extension" "ext" {
-  for_each = length(lookup(var.vmss, "extensions", {})) > 0 ? {
+  for_each = var.vmss.type != "flex" && length(lookup(var.vmss, "extensions", {})) > 0 ? {
     for ext_key, ext in lookup(var.vmss, "extensions", {}) :
     "${var.vmss.name}-${ext_key}" => ext
   } : {}
