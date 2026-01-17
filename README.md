@@ -93,6 +93,7 @@ Type:
 object({
     name                                              = string
     type                                              = string
+    os_type                                           = optional(string)
     resource_group_name                               = optional(string)
     location                                          = optional(string)
     sku                                               = optional(string, "Standard_DS1_v2")

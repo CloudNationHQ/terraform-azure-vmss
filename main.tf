@@ -411,6 +411,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   single_placement_group        = var.vmss.single_placement_group
   zone_balance                  = var.vmss.zone_balance
   zones                         = var.vmss.zones
+  upgrade_mode                  = var.vmss.upgrade_mode
   encryption_at_host_enabled    = var.vmss.encryption_at_host_enabled
   extension_operations_enabled  = var.vmss.extension_operations_enabled
   extensions_time_budget        = var.vmss.extensions_time_budget
