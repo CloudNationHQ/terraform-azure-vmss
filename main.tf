@@ -720,9 +720,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
     }
   }
 
-  # lifecycle {
-  #   ignore_changes = [instances]
-  # }
+  lifecycle {
+    ignore_changes = [extension]
+  }
 }
 
 # scale set windows
@@ -1036,6 +1036,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "vmss" {
 }
 
 resource "azurerm_virtual_machine_scale_set_extension" "ext" {
+  # For Flex VMSS, extensions are defined within the VMSS resource itself, other the extensions are not ran on the individual instances. 
   for_each = var.vmss.type != "flex" && length(lookup(var.vmss, "extensions", {})) > 0 ? {
     for ext_key, ext in lookup(var.vmss, "extensions", {}) :
     "${var.vmss.name}-${ext_key}" => ext
