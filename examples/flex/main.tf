@@ -2,7 +2,7 @@ module "naming" {
   source  = "cloudnationhq/naming/azure"
   version = "~> 0.26"
 
-  suffix = ["demo"]
+  suffix = ["demo", "dev"]
 }
 
 module "rg" {
@@ -30,9 +30,7 @@ module "network" {
     address_space       = ["10.18.0.0/16"]
 
     subnets = {
-      internal = {
-        address_prefixes = ["10.18.1.0/24"]
-      }
+      internal = { address_prefixes = ["10.18.1.0/24"] }
     }
   }
 }
@@ -48,10 +46,9 @@ module "kv" {
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
     secrets = {
-      random_string = {
+      tls_keys = {
         instance = {
-          length  = 24
-          special = false
+          algorithm = "RSA"
         }
       }
     }
@@ -65,19 +62,20 @@ module "scaleset" {
   naming = local.naming
 
   instance = {
-    type                 = "windows"
-    name                 = module.naming.windows_virtual_machine_scale_set.name_unique
-    computer_name_prefix = "vmssdemo"
-    location             = module.rg.groups.demo.location
-    resource_group_name  = module.rg.groups.demo.name
+    type                = "flex"
+    name                = module.naming.virtual_machine_scale_set.name_unique
+    location            = module.rg.groups.demo.location
+    resource_group_name = module.rg.groups.demo.name
+
+    platform_fault_domain_count = 1
 
     source_image_reference = {
-      offer     = "WindowsServer"
-      publisher = "MicrosoftWindowsServer"
-      sku       = "2022-Datacenter"
+      publisher = "Canonical"
+      offer     = "0001-com-ubuntu-server-jammy"
+      sku       = "22_04-lts"
     }
 
-    admin_password = module.kv.secrets.instance.value
+    public_key = module.kv.tls_public_keys.instance.value
 
     interfaces = {
       internal = {

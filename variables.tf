@@ -3,6 +3,7 @@ variable "instance" {
   type = object({
     name                                              = string
     type                                              = string
+    os_type                                           = optional(string)
     resource_group_name                               = optional(string)
     location                                          = optional(string)
     sku                                               = optional(string, "Standard_DS1_v2")
@@ -34,14 +35,26 @@ variable "instance" {
     host_group_id                                     = optional(string)
     max_bid_price                                     = optional(number)
     proximity_placement_group_id                      = optional(string)
-    single_placement_group                            = optional(bool, true)
+    network_api_version                               = optional(string)
+    single_placement_group                            = optional(bool)
     source_image_id                                   = optional(string)
+    priority_mix = optional(object({
+      base_regular_count            = optional(number)
+      regular_percentage_above_base = optional(number)
+    }))
+    sku_profile = optional(object({
+      allocation_strategy = string
+      vm_sizes            = list(string)
+    }))
     additional_capabilities = optional(object({
       ultra_ssd_enabled = optional(bool, false)
     }))
     tags                     = optional(map(string))
     public_key               = optional(string)
     enable_automatic_updates = optional(bool, true)
+    patch_assessment_mode    = optional(string)
+    patch_mode               = optional(string)
+    hotpatching_enabled      = optional(bool, false)
     timezone                 = optional(string)
     license_type             = optional(string)
     source_image_reference = optional(object({
@@ -85,6 +98,7 @@ variable "instance" {
           tag  = string
         })))
         public_ip_prefix_id = optional(string)
+        sku_name            = optional(string)
         version             = optional(string)
       }))
       ip_configuration = optional(object({
@@ -104,17 +118,18 @@ variable "instance" {
       write_accelerator_enabled      = optional(bool, false)
     })), {})
     extensions = optional(map(object({
-      name                        = optional(string)
-      publisher                   = string
-      type                        = string
-      type_handler_version        = string
-      settings                    = optional(any, {})
-      protected_settings          = optional(any, {})
-      auto_upgrade_minor_version  = optional(bool, true)
-      automatic_upgrade_enabled   = optional(bool, false)
-      failure_suppression_enabled = optional(bool, false)
-      provision_after_extensions  = optional(list(string), [])
-      force_update_tag            = optional(string)
+      name                                = optional(string)
+      publisher                           = string
+      type                                = string
+      type_handler_version                = string
+      settings                            = optional(any, {})
+      protected_settings                  = optional(any, {})
+      auto_upgrade_minor_version          = optional(bool, true)
+      automatic_upgrade_enabled           = optional(bool, false)
+      failure_suppression_enabled         = optional(bool, false)
+      provision_after_extensions          = optional(list(string), [])
+      force_update_tag                    = optional(string)
+      force_extension_execution_on_change = optional(string)
       protected_settings_from_key_vault = optional(object({
         secret_url      = string
         source_vault_id = string
@@ -252,8 +267,8 @@ variable "instance" {
   })
 
   validation {
-    condition     = contains(["windows", "linux"], var.instance.type)
-    error_message = "The instance type must be either 'windows' or 'linux'."
+    condition     = contains(["windows", "linux", "flex"], var.instance.type)
+    error_message = "The instance type must be either 'windows', 'linux', or 'flex'."
   }
 
   validation {
@@ -270,11 +285,13 @@ variable "instance" {
     condition = (
       var.instance.type == "linux" ? (
         var.instance.public_key != null || var.instance.admin_password != null
+        ) : var.instance.type == "flex" ? (
+        var.instance.public_key != null || var.instance.admin_password != null || var.instance.os_type == "windows"
         ) : (
         var.instance.admin_password != null
       )
     )
-    error_message = "For Linux VMSS, either 'public_key' or 'admin_password' must be provided. For Windows VMSS, 'admin_password' must be provided."
+    error_message = "For Linux/Flex VMSS, either 'public_key' or 'admin_password' must be provided. For Windows VMSS, 'admin_password' must be provided."
   }
 }
 

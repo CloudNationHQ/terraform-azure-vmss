@@ -612,10 +612,369 @@ resource "azurerm_windows_virtual_machine_scale_set" "this" {
   }
 }
 
-resource "azurerm_virtual_machine_scale_set_extension" "this" {
-  for_each = try(
-    var.instance.extensions, {}
+# scale set flex (orchestrated)
+resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
+  for_each = var.instance.type == "flex" ? { "vmss" = true } : {}
+
+  name = var.instance.name
+
+  resource_group_name = coalesce(
+    lookup(var.instance, "resource_group_name", null), var.resource_group_name
   )
+
+  location = coalesce(
+    lookup(var.instance, "location", null), var.location
+  )
+
+  network_api_version           = var.instance.network_api_version
+  platform_fault_domain_count   = var.instance.platform_fault_domain_count
+  proximity_placement_group_id  = var.instance.proximity_placement_group_id
+  single_placement_group        = var.instance.single_placement_group
+  zone_balance                  = var.instance.zone_balance
+  zones                         = var.instance.zones
+  upgrade_mode                  = var.instance.upgrade_mode
+  encryption_at_host_enabled    = var.instance.encryption_at_host_enabled
+  extension_operations_enabled  = var.instance.extension_operations_enabled
+  extensions_time_budget        = var.instance.extensions_time_budget
+  capacity_reservation_group_id = var.instance.capacity_reservation_group_id
+  source_image_id               = var.instance.source_image_id
+  user_data_base64              = var.instance.user_data != null ? base64encode(var.instance.user_data) : null
+  instances                     = var.instance.instances
+  sku_name                      = var.instance.sku
+  eviction_policy               = var.instance.eviction_policy
+  max_bid_price                 = var.instance.max_bid_price
+  priority                      = var.instance.priority
+  license_type                  = var.instance.license_type
+
+  tags = coalesce(
+    var.instance.tags, var.tags
+  )
+
+  dynamic "additional_capabilities" {
+    for_each = var.instance.additional_capabilities != null ? [var.instance.additional_capabilities] : []
+
+    content {
+      ultra_ssd_enabled = additional_capabilities.value.ultra_ssd_enabled
+    }
+  }
+
+  dynamic "automatic_instance_repair" {
+    for_each = var.instance.automatic_instance_repair != null ? [var.instance.automatic_instance_repair] : []
+
+    content {
+      enabled      = automatic_instance_repair.value.enabled
+      grace_period = automatic_instance_repair.value.grace_period
+      action       = automatic_instance_repair.value.action
+    }
+  }
+
+  dynamic "boot_diagnostics" {
+    for_each = lookup(var.instance, "boot_diagnostics", null) != null ? [var.instance.boot_diagnostics] : []
+
+    content {
+      storage_account_uri = boot_diagnostics.value.storage_account_uri
+    }
+  }
+
+  dynamic "identity" {
+    for_each = lookup(var.instance, "identity", null) != null ? [var.instance.identity] : []
+
+    content {
+      type         = identity.value.type
+      identity_ids = identity.value.identity_ids
+    }
+  }
+
+  dynamic "network_interface" {
+    for_each = var.instance.interfaces
+
+    content {
+      name                          = "nic-${network_interface.key}"
+      primary                       = network_interface.value.primary
+      dns_servers                   = network_interface.value.dns_servers
+      enable_accelerated_networking = network_interface.value.enable_accelerated_networking
+      enable_ip_forwarding          = network_interface.value.enable_ip_forwarding
+      auxiliary_mode                = network_interface.value.auxiliary_mode
+      auxiliary_sku                 = network_interface.value.auxiliary_sku
+      network_security_group_id     = network_interface.value.network_security_group_id
+
+      ip_configuration {
+        name                                         = "ipconf-${network_interface.key}"
+        primary                                      = network_interface.value.primary
+        subnet_id                                    = network_interface.value.subnet
+        application_gateway_backend_address_pool_ids = network_interface.value.application_gateway_backend_address_pool_ids
+        application_security_group_ids               = network_interface.value.application_security_group_ids
+        load_balancer_backend_address_pool_ids       = network_interface.value.load_balancer_backend_address_pool_ids
+        version                                      = network_interface.value.ip_configuration != null ? network_interface.value.ip_configuration.version : null
+
+        dynamic "public_ip_address" {
+          for_each = network_interface.value.public_ip_address != null ? [network_interface.value.public_ip_address] : []
+
+          content {
+            name                    = public_ip_address.value.name != null ? public_ip_address.value.name : "pip-${network_interface.key}"
+            domain_name_label       = public_ip_address.value.domain_name_label
+            idle_timeout_in_minutes = public_ip_address.value.idle_timeout_in_minutes
+            public_ip_prefix_id     = public_ip_address.value.public_ip_prefix_id
+            sku_name                = public_ip_address.value.sku_name
+            version                 = public_ip_address.value.version
+
+            dynamic "ip_tag" {
+              for_each = try(public_ip_address.value.ip_tags, {})
+
+              content {
+                tag  = ip_tag.value.tag
+                type = ip_tag.value.type
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  dynamic "os_disk" {
+    for_each = [1]
+
+    content {
+      storage_account_type      = var.instance.os_disk.storage_account_type
+      caching                   = var.instance.os_disk.caching
+      disk_encryption_set_id    = var.instance.os_disk.disk_encryption_set_id
+      disk_size_gb              = var.instance.os_disk.disk_size_gb
+      write_accelerator_enabled = var.instance.os_disk.write_accelerator_enabled
+
+      dynamic "diff_disk_settings" {
+        for_each = var.instance.diff_disk_settings != null ? [var.instance.diff_disk_settings] : []
+
+        content {
+          option    = diff_disk_settings.value.option
+          placement = diff_disk_settings.value.placement
+        }
+      }
+    }
+  }
+
+  dynamic "os_profile" {
+    for_each = var.instance.source_image_id != null || var.instance.source_image_reference != null || var.source_image_reference != null ? [1] : []
+
+    content {
+      custom_data = var.instance.custom_data != null ? base64encode(var.instance.custom_data) : null
+
+      dynamic "linux_configuration" {
+        for_each = lower(coalesce(var.instance.os_type, "linux")) == "linux" ? [1] : []
+
+        content {
+          disable_password_authentication = (
+            var.instance.admin_password != null ? false : var.instance.public_key != null ? true : var.instance.disable_password_authentication
+          )
+          admin_username     = var.instance.admin_username
+          admin_password     = var.instance.admin_password
+          provision_vm_agent = var.instance.provision_vm_agent
+          computer_name_prefix = coalesce(
+            var.instance.computer_name_prefix, var.instance.name
+          )
+          patch_assessment_mode = var.instance.patch_assessment_mode
+          patch_mode            = var.instance.patch_mode
+
+          dynamic "admin_ssh_key" {
+            for_each = var.instance.public_key != null ? [1] : []
+
+            content {
+              username   = var.instance.username
+              public_key = var.instance.public_key
+            }
+          }
+
+          dynamic "secret" {
+            for_each = try(var.instance.secrets, {})
+
+            content {
+              key_vault_id = secret.value.key_vault_id
+
+              dynamic "certificate" {
+                for_each = [secret.value.certificate]
+
+                content {
+                  url = certificate.value.url
+                }
+              }
+            }
+          }
+        }
+      }
+
+      dynamic "windows_configuration" {
+        for_each = lower(coalesce(var.instance.os_type, "linux")) == "windows" ? [1] : []
+
+        content {
+          admin_username           = var.instance.admin_username
+          admin_password           = var.instance.admin_password
+          enable_automatic_updates = var.instance.enable_automatic_updates
+          provision_vm_agent       = var.instance.provision_vm_agent
+          timezone                 = var.instance.timezone
+          computer_name_prefix = coalesce(
+            var.instance.computer_name_prefix, var.instance.name
+          )
+          patch_assessment_mode = var.instance.patch_assessment_mode
+          patch_mode            = var.instance.patch_mode
+          hotpatching_enabled   = var.instance.hotpatching_enabled
+
+          dynamic "additional_unattend_content" {
+            for_each = var.instance.additional_unattend_content != null ? [var.instance.additional_unattend_content] : []
+
+            content {
+              content = additional_unattend_content.value.content
+              setting = additional_unattend_content.value.setting
+            }
+          }
+
+          dynamic "secret" {
+            for_each = try(var.instance.secrets, {})
+
+            content {
+              key_vault_id = secret.value.key_vault_id
+
+              dynamic "certificate" {
+                for_each = [secret.value.certificate]
+
+                content {
+                  url   = certificate.value.url
+                  store = certificate.value.store
+                }
+              }
+            }
+          }
+
+          dynamic "winrm_listener" {
+            for_each = var.instance.winrm_listener != null ? [var.instance.winrm_listener] : []
+
+            content {
+              certificate_url = winrm_listener.value.certificate_url
+              protocol        = winrm_listener.value.protocol
+            }
+          }
+        }
+      }
+    }
+  }
+
+  dynamic "data_disk" {
+    for_each = var.instance.disks
+
+    content {
+      caching                        = data_disk.value.caching
+      create_option                  = data_disk.value.create_option
+      disk_encryption_set_id         = data_disk.value.disk_encryption_set_id
+      disk_size_gb                   = data_disk.value.disk_size_gb
+      lun                            = data_disk.value.lun
+      storage_account_type           = data_disk.value.storage_account_type
+      ultra_ssd_disk_iops_read_write = data_disk.value.ultra_ssd_disk_iops_read_write
+      ultra_ssd_disk_mbps_read_write = data_disk.value.ultra_ssd_disk_mbps_read_write
+      write_accelerator_enabled      = data_disk.value.write_accelerator_enabled
+    }
+  }
+
+  dynamic "source_image_reference" {
+    for_each = var.instance.source_image_id == null ? [true] : []
+
+    content {
+      publisher = try(
+        var.instance.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
+      )
+      offer = try(
+        var.instance.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
+      )
+      sku = try(
+        var.instance.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
+      )
+      version = try(
+        var.instance.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
+      )
+    }
+  }
+
+  dynamic "plan" {
+    for_each = var.instance.plan != null ? [var.instance.plan] : []
+
+    content {
+      name      = plan.value.name
+      publisher = plan.value.publisher
+      product   = plan.value.product
+    }
+  }
+
+  dynamic "priority_mix" {
+    for_each = var.instance.priority == "Spot" && var.instance.priority_mix != null ? [var.instance.priority_mix] : []
+
+    content {
+      base_regular_count            = priority_mix.value.base_regular_count
+      regular_percentage_above_base = priority_mix.value.regular_percentage_above_base
+    }
+  }
+
+  dynamic "rolling_upgrade_policy" {
+    for_each = var.instance.rolling_upgrade_policy != null ? [var.instance.rolling_upgrade_policy] : []
+
+    content {
+      cross_zone_upgrades_enabled             = rolling_upgrade_policy.value.cross_zone_upgrades_enabled
+      max_batch_instance_percent              = rolling_upgrade_policy.value.max_batch_instance_percent
+      max_unhealthy_instance_percent          = rolling_upgrade_policy.value.max_unhealthy_instance_percent
+      max_unhealthy_upgraded_instance_percent = rolling_upgrade_policy.value.max_unhealthy_upgraded_instance_percent
+      pause_time_between_batches              = rolling_upgrade_policy.value.pause_time_between_batches
+      prioritize_unhealthy_instances_enabled  = rolling_upgrade_policy.value.prioritize_unhealthy_instances_enabled
+      maximum_surge_instances_enabled         = rolling_upgrade_policy.value.maximum_surge_instances_enabled
+    }
+  }
+
+  dynamic "sku_profile" {
+    for_each = var.instance.sku_profile != null ? [var.instance.sku_profile] : []
+
+    content {
+      allocation_strategy = sku_profile.value.allocation_strategy
+      vm_sizes            = sku_profile.value.vm_sizes
+    }
+  }
+
+  dynamic "termination_notification" {
+    for_each = var.instance.termination_notification != null ? [var.instance.termination_notification] : []
+
+    content {
+      enabled = termination_notification.value.enabled
+      timeout = termination_notification.value.timeout
+    }
+  }
+
+  dynamic "extension" {
+    for_each = lookup(var.instance, "extensions", {})
+
+    content {
+      name                                = lookup(extension.value, "name", extension.key)
+      publisher                           = extension.value.publisher
+      type                                = extension.value.type
+      type_handler_version                = extension.value.type_handler_version
+      settings                            = length(try(extension.value.settings, {})) > 0 ? jsonencode(extension.value.settings) : null
+      protected_settings                  = length(try(extension.value.protected_settings, {})) > 0 ? jsonencode(extension.value.protected_settings) : null
+      failure_suppression_enabled         = extension.value.failure_suppression_enabled
+      force_extension_execution_on_change = extension.value.force_extension_execution_on_change
+
+      dynamic "protected_settings_from_key_vault" {
+        for_each = extension.value.protected_settings_from_key_vault != null ? [extension.value.protected_settings_from_key_vault] : []
+
+        content {
+          secret_url      = protected_settings_from_key_vault.value.secret_url
+          source_vault_id = protected_settings_from_key_vault.value.source_vault_id
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [extension]
+  }
+}
+
+resource "azurerm_virtual_machine_scale_set_extension" "this" {
+  # For Flex VMSS, extensions are defined within the VMSS resource itself so they run on individual instances.
+  for_each = var.instance.type != "flex" ? try(var.instance.extensions, {}) : {}
 
   name                         = lookup(each.value, "name", null) != null ? each.value.name : each.key
   virtual_machine_scale_set_id = var.instance.type == "linux" ? azurerm_linux_virtual_machine_scale_set.this["vmss"].id : azurerm_windows_virtual_machine_scale_set.this["vmss"].id
@@ -657,7 +1016,7 @@ resource "azurerm_monitor_autoscale_setting" "this" {
     var.instance.location, var.location
   )
 
-  target_resource_id = var.instance.type == "linux" ? azurerm_linux_virtual_machine_scale_set.this["vmss"].id : azurerm_windows_virtual_machine_scale_set.this["vmss"].id
+  target_resource_id = var.instance.type == "linux" ? azurerm_linux_virtual_machine_scale_set.this["vmss"].id : var.instance.type == "windows" ? azurerm_windows_virtual_machine_scale_set.this["vmss"].id : azurerm_orchestrated_virtual_machine_scale_set.this["vmss"].id
   enabled            = var.instance.autoscaling.enabled
 
   tags = coalesce(
@@ -707,7 +1066,7 @@ resource "azurerm_monitor_autoscale_setting" "this" {
         content {
           metric_trigger {
             metric_name              = rule.value.metric_trigger.metric_name
-            metric_resource_id       = coalesce(try(rule.value.metric_trigger.metric_resource_id, null), var.instance.type == "linux" ? azurerm_linux_virtual_machine_scale_set.this["vmss"].id : azurerm_windows_virtual_machine_scale_set.this["vmss"].id)
+            metric_resource_id       = coalesce(try(rule.value.metric_trigger.metric_resource_id, null), var.instance.type == "linux" ? azurerm_linux_virtual_machine_scale_set.this["vmss"].id : var.instance.type == "windows" ? azurerm_windows_virtual_machine_scale_set.this["vmss"].id : azurerm_orchestrated_virtual_machine_scale_set.this["vmss"].id)
             metric_namespace         = rule.value.metric_trigger.metric_namespace
             time_aggregation         = rule.value.metric_trigger.time_aggregation
             time_window              = rule.value.metric_trigger.time_window
