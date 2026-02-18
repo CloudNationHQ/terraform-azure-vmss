@@ -92,7 +92,7 @@ object({
     max_bid_price                                     = optional(number)
     proximity_placement_group_id                      = optional(string)
     network_api_version                               = optional(string)
-    single_placement_group                            = optional(bool, true)
+    single_placement_group                            = optional(bool)
     source_image_id                                   = optional(string)
     priority_mix = optional(object({
       base_regular_count            = optional(number)
@@ -109,6 +109,8 @@ object({
     public_key               = optional(string)
     enable_automatic_updates = optional(bool, true)
     patch_assessment_mode    = optional(string)
+    patch_mode               = optional(string)
+    hotpatching_enabled      = optional(bool, false)
     timezone                 = optional(string)
     license_type             = optional(string)
     source_image_reference = optional(object({
