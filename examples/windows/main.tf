@@ -1,6 +1,6 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.24"
+  version = "~> 0.26"
 
   suffix = ["demo"]
 }
@@ -47,6 +47,14 @@ module "kv" {
     name                = module.naming.key_vault.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
+    secrets = {
+      random_string = {
+        instance = {
+          length  = 24
+          special = false
+        }
+      }
+    }
   }
 }
 
@@ -54,15 +62,14 @@ module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
   version = "~> 2.0"
 
-  keyvault   = module.kv.vault.id
-  naming     = local.naming
-  depends_on = [module.kv]
+  naming = local.naming
 
-  vmss = {
-    type                = "windows"
-    name                = module.naming.windows_virtual_machine_scale_set.name
-    location            = module.rg.groups.demo.location
-    resource_group_name = module.rg.groups.demo.name
+  instance = {
+    type                 = "windows"
+    name                 = module.naming.windows_virtual_machine_scale_set.name_unique
+    computer_name_prefix = "vmssdemo"
+    location             = module.rg.groups.demo.location
+    resource_group_name  = module.rg.groups.demo.name
 
     source_image_reference = {
       offer     = "WindowsServer"
@@ -70,9 +77,7 @@ module "scaleset" {
       sku       = "2022-Datacenter"
     }
 
-    generate_password = {
-      enable = true
-    }
+    admin_password = module.kv.secrets.instance.value
 
     interfaces = {
       internal = {

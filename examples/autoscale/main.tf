@@ -1,6 +1,6 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.24"
+  version = "~> 0.26"
 
   suffix = ["demo", "dev"]
 }
@@ -45,18 +45,23 @@ module "kv" {
     name                = module.naming.key_vault.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
+    secrets = {
+      tls_keys = {
+        instance = {
+          algorithm = "RSA"
+        }
+      }
+    }
   }
 }
 
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
-  keyvault   = module.kv.vault.id
-  naming     = local.naming
-  depends_on = [module.kv]
+  naming = local.naming
 
-  vmss = {
+  instance = {
     name                = module.naming.linux_virtual_machine_scale_set.name
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
@@ -68,41 +73,44 @@ module "scaleset" {
       sku       = "22_04-lts"
     }
 
-    generate_ssh_key = {
-      enable = true
-    }
+    public_key = module.kv.tls_public_keys.instance.value
 
     autoscaling = {
-      min = 1
-      max = 5
-      rules = {
-        increase = {
-          metric_name      = "Percentage CPU"
-          time_grain       = "PT1M"
-          statistic        = "Average"
-          time_window      = "PT5M"
-          time_aggregation = "Average"
-          operator         = "GreaterThan"
-          threshold        = 80
-          direction        = "Increase"
-          value            = 1
-          cooldown         = "PT1M"
-          type             = "ChangeCount"
+      profiles = [
+        {
+          name = "weekend-profile"
+          capacity = {
+            default = 1
+            minimum = 1
+            maximum = 3
+          }
+          rules = [
+            {
+              metric_trigger = {
+                metric_name      = "Percentage CPU"
+                time_grain       = "PT1M"
+                statistic        = "Average"
+                time_window      = "PT5M"
+                time_aggregation = "Average"
+                operator         = "GreaterThan"
+                threshold        = 70
+              }
+              scale_action = {
+                direction = "Increase"
+                type      = "ChangeCount"
+                value     = "1"
+                cooldown  = "PT1M"
+              }
+            }
+          ]
+          recurrence = {
+            timezone = "UTC"
+            days     = ["Saturday", "Sunday"]
+            hours    = [12]
+            minutes  = [0]
+          }
         }
-        decrease = {
-          metric_name      = "Percentage CPU"
-          time_grain       = "PT1M"
-          statistic        = "Average"
-          time_window      = "PT5M"
-          time_aggregation = "Average"
-          operator         = "LessThan"
-          threshold        = 20
-          direction        = "Decrease"
-          value            = 1
-          cooldown         = "PT1M"
-          type             = "ChangeCount"
-        }
-      }
+      ]
     }
 
     interfaces = {

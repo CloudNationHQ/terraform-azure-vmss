@@ -1,4 +1,4 @@
-variable "vmss" {
+variable "instance" {
   description = "Contains all virtual machine scale set configuration"
   type = object({
     name                                              = string
@@ -42,9 +42,7 @@ variable "vmss" {
     tags                     = optional(map(string))
     public_key               = optional(string)
     enable_automatic_updates = optional(bool, true)
-    hotpatching_enabled      = optional(bool, false)
     timezone                 = optional(string)
-    patch_mode               = optional(string)
     license_type             = optional(string)
     source_image_reference = optional(object({
       publisher = string
@@ -159,6 +157,8 @@ variable "vmss" {
       prioritize_unhealthy_instances_enabled  = optional(bool)
       maximum_surge_instances_enabled         = optional(bool)
     }))
+    resilient_vm_creation_enabled = optional(bool, false)
+    resilient_vm_deletion_enabled = optional(bool, false)
     scale_in = optional(object({
       rule                   = optional(string)
       force_deletion_enabled = optional(bool)
@@ -186,54 +186,9 @@ variable "vmss" {
       content = optional(string)
       setting = optional(string)
     }))
-    generate_ssh_key = optional(object({
-      enable           = optional(bool, false)
-      algorithm        = optional(string, "RSA")
-      rsa_bits         = optional(number, 4096)
-      ecdsa_curve      = optional(string)
-      expiration_date  = optional(string)
-      not_before_date  = optional(string)
-      value_wo_version = optional(number)
-      value_wo         = optional(string)
-      content_type     = optional(string)
-    }))
-    generate_password = optional(object({
-      enable           = optional(bool, false)
-      length           = optional(number, 24)
-      special          = optional(bool, true)
-      min_lower        = optional(number, 5)
-      min_upper        = optional(number, 7)
-      min_special      = optional(number, 4)
-      min_numeric      = optional(number, 5)
-      numeric          = optional(bool)
-      upper            = optional(bool)
-      lower            = optional(bool)
-      override_special = optional(string)
-      expiration_date  = optional(string)
-      not_before_date  = optional(string)
-      value_wo_version = optional(number)
-      value_wo         = optional(string)
-      content_type     = optional(string)
-      keepers          = optional(map(string))
-    }), { enable = false })
     autoscaling = optional(object({
-      enabled      = optional(bool, true)
-      name         = optional(string, "scaler")
-      profile_name = optional(string, "default")
-      min          = number
-      max          = number
-      default      = optional(number, 1)
-      fixed_date = optional(object({
-        end      = string
-        start    = string
-        timezone = optional(string)
-      }))
-      recurrence = optional(object({
-        timezone = optional(string)
-        days     = list(string)
-        hours    = list(number)
-        minutes  = list(number)
-      }))
+      enabled = optional(bool, true)
+      name    = optional(string, "scaler")
       notification = optional(object({
         email = optional(object({
           send_to_subscription_administrator    = optional(bool)
@@ -291,55 +246,35 @@ variable "vmss" {
             value     = string
             cooldown  = string
           })
-        })))
-      })))
-      rules = optional(map(object({
-        metric_name      = string
-        time_aggregation = string
-        time_window      = string
-        operator         = string
-        threshold        = number
-        time_grain       = string
-        direction        = string
-        type             = string
-        value            = string
-        cooldown         = string
-        statistic        = string
-        metric_namespace = optional(string)
-        dimensions = optional(list(object({
-          name     = string
-          operator = string
-          values   = list(string)
-        })))
-        divide_by_instance_count = optional(bool)
-      })))
+        })), [])
+      })), [])
     }))
   })
 
   validation {
-    condition     = contains(["windows", "linux"], var.vmss.type)
-    error_message = "The vmss type must be either 'windows' or 'linux'."
+    condition     = contains(["windows", "linux"], var.instance.type)
+    error_message = "The instance type must be either 'windows' or 'linux'."
   }
 
   validation {
-    condition     = var.vmss.location != null || var.location != null
-    error_message = "Location must be provided either in the vmss object or as a separate variable."
+    condition     = var.instance.location != null || var.location != null
+    error_message = "Location must be provided either in the instance object or as a separate variable."
   }
 
   validation {
-    condition     = var.vmss.resource_group_name != null || var.resource_group_name != null
-    error_message = "Resource group name must be provided either in the vmss object or as a separate variable."
+    condition     = var.instance.resource_group_name != null || var.resource_group_name != null
+    error_message = "Resource group name must be provided either in the instance object or as a separate variable."
   }
 
   validation {
     condition = (
-      var.vmss.type == "linux" ? (
-        var.vmss.public_key != null || var.vmss.admin_password != null || try(var.vmss.generate_ssh_key.enable, false) == true || try(var.vmss.generate_password.enable, false) == true
+      var.instance.type == "linux" ? (
+        var.instance.public_key != null || var.instance.admin_password != null
         ) : (
-        var.vmss.admin_password != null || try(var.vmss.generate_password.enable, false) == true
+        var.instance.admin_password != null
       )
     )
-    error_message = "For Linux VMSS, either 'public_key', 'admin_password', 'generate_ssh_key.enable', or 'generate_password.enable' must be provided. For Windows VMSS, either 'admin_password' or 'generate_password.enable' must be provided."
+    error_message = "For Linux VMSS, either 'public_key' or 'admin_password' must be provided. For Windows VMSS, 'admin_password' must be provided."
   }
 }
 
@@ -347,12 +282,6 @@ variable "naming" {
   description = "used for naming purposes"
   type        = map(string)
   default     = {}
-}
-
-variable "keyvault" {
-  description = "keyvault id to store secrets"
-  type        = string
-  default     = null
 }
 
 variable "location" {
@@ -374,7 +303,7 @@ variable "tags" {
 }
 
 variable "source_image_reference" {
-  description = "Default source image reference configuration to use when not specified at the vmss level"
+  description = "Default source image reference configuration to use when not specified at the instance level"
   type = object({
     publisher = string
     offer     = string

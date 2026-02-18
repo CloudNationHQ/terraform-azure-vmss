@@ -1,6 +1,6 @@
 module "naming" {
   source  = "cloudnationhq/naming/azure"
-  version = "~> 0.24"
+  version = "~> 0.26"
 
   suffix = ["demo", "dev"]
 }
@@ -45,20 +45,25 @@ module "kv" {
     name                = module.naming.key_vault.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
+    secrets = {
+      tls_keys = {
+        instance = {
+          algorithm = "RSA"
+        }
+      }
+    }
   }
 }
 
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
-  keyvault   = module.kv.vault.id
-  naming     = local.naming
-  depends_on = [module.kv]
+  naming = local.naming
 
-  vmss = {
+  instance = {
     type                = "linux"
-    name                = module.naming.linux_virtual_machine_scale_set.name
+    name                = module.naming.linux_virtual_machine_scale_set.name_unique
     location            = module.rg.groups.demo.location
     resource_group_name = module.rg.groups.demo.name
 
@@ -68,9 +73,7 @@ module "scaleset" {
       sku       = "22_04-lts"
     }
 
-    generate_ssh_key = {
-      enable = true
-    }
+    public_key = module.kv.tls_public_keys.instance.value
 
     interfaces = {
       internal = {
