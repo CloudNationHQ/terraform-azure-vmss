@@ -76,16 +76,16 @@ module "scaleset" {
     public_key = module.kv.tls_public_keys.instance.value
 
     autoscaling = {
-      profiles = [
-        {
+      profiles = {
+        weekend = {
           name = "weekend-profile"
           capacity = {
             default = 1
             minimum = 1
             maximum = 3
           }
-          rules = [
-            {
+          rules = {
+            scale_out = {
               metric_trigger = {
                 metric_name      = "Percentage CPU"
                 time_grain       = "PT1M"
@@ -102,7 +102,7 @@ module "scaleset" {
                 cooldown  = "PT1M"
               }
             }
-          ]
+          }
           recurrence = {
             timezone = "UTC"
             days     = ["Saturday", "Sunday"]
@@ -110,7 +110,7 @@ module "scaleset" {
             minutes  = [0]
           }
         }
-      ]
+      }
     }
 
     interfaces = {

@@ -1025,7 +1025,7 @@ resource "azurerm_monitor_autoscale_setting" "this" {
 
   dynamic "profile" {
     for_each = coalesce(
-      var.instance.autoscaling.profiles, []
+      var.instance.autoscaling.profiles, {}
     )
 
     content {
@@ -1060,7 +1060,7 @@ resource "azurerm_monitor_autoscale_setting" "this" {
 
       dynamic "rule" {
         for_each = coalesce(
-          profile.value.rules, []
+          profile.value.rules, {}
         )
 
         content {

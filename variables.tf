@@ -219,7 +219,7 @@ variable "instance" {
         scale_mode      = string
         look_ahead_time = optional(string)
       }))
-      profiles = optional(list(object({
+      profiles = optional(map(object({
         name = string
         capacity = object({
           default = number
@@ -237,7 +237,7 @@ variable "instance" {
           hours    = list(number)
           minutes  = list(number)
         }))
-        rules = optional(list(object({
+        rules = optional(map(object({
           metric_trigger = object({
             metric_name        = string
             metric_resource_id = optional(string)
@@ -261,8 +261,8 @@ variable "instance" {
             value     = string
             cooldown  = string
           })
-        })), [])
-      })), [])
+        })), {})
+      })), {})
     }))
   })
 
