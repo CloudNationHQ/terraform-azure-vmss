@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.2.0...v3.0.0) (2026-03-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* this change causes recreates
+
+### Features
+
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#87](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/87)) ([dbe9a8f](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/dbe9a8f358e2a5ecb66b726e025285246f93e1c7))
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#89](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/89)) ([9f98ae4](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/9f98ae4d83632a74c7b91c89d534424c52cba78c))
+* small refactor and data structure change ([#86](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/86)) ([678e8a8](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/678e8a8f84433d09fada569ae851153495be1590))
+
 ## [2.2.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.1.2...v2.2.0) (2026-01-26)
 
 
