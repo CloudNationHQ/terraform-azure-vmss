@@ -4,41 +4,21 @@ This terraform module simplifies the configuration and management of virtual mac
 
 ## Features
 
-Flexibility to incorporate multiple extensions
+Supports both Linux and Windows VM scale sets
 
-Utilization of Terratest for robust validation
+Supports multiple NICs, IP configurations, and data disks
 
-Ability to use multiple interfaces and disks
+Supports VMSS extensions
 
-Supports both system and multiple user assigned identities
+Supports managed identities (system-assigned and user-assigned)
 
-Supports custom data integration
+Supports autoscaling rules, schedules, and predictive settings
 
-Compatible with both Linux and Windows environments
+Supports autoscaler multiple profiles
 
-Supports availability sets to enhance fault tolerance and availability
+Supports rolling upgrade policy, automatic instance repair, and termination notifications
 
-Autoscaling with predictive capabilities and custom profiles
-
-Automatic SSH key and password generation with Key Vault integration
-
-Support for spot instances with configurable eviction policies
-
-Rolling upgrade policies with surge capacity and health monitoring
-
-Boot diagnostics and automatic instance repair functionality
-
-Gallery application deployment support
-
-Encryption at host with disk encryption set integration
-
-Public IP address configuration with custom IP tags
-
-Ultra SSD support with configurable IOPS and throughput
-
-Termination notifications and spot restore capabilities
-
-Validation rules for configuration consistency
+Supports custom data/user data and gallery applications
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -49,40 +29,27 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
-
-- <a name="requirement_tls"></a> [tls](#requirement\_tls) (~> 4.0)
-
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (4.55.0)
-
-- <a name="provider_random"></a> [random](#provider\_random) (3.7.2)
-
-- <a name="provider_tls"></a> [tls](#provider\_tls) (4.1.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 4.0)
 
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_key_vault_secret.secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_key_vault_secret.tls_private_key_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_key_vault_secret.tls_public_key_secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_linux_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) (resource)
-- [azurerm_monitor_autoscale_setting.scaling](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_autoscale_setting) (resource)
-- [azurerm_virtual_machine_scale_set_extension.ext](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_scale_set_extension) (resource)
-- [azurerm_windows_virtual_machine_scale_set.vmss](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set) (resource)
-- [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) (resource)
-- [tls_private_key.tls_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) (resource)
-- [azurerm_subscription.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subscription) (data source)
+- [azurerm_linux_virtual_machine_scale_set.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) (resource)
+- [azurerm_monitor_autoscale_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_autoscale_setting) (resource)
+- [azurerm_orchestrated_virtual_machine_scale_set.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/orchestrated_virtual_machine_scale_set) (resource)
+- [azurerm_virtual_machine_scale_set_extension.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_scale_set_extension) (resource)
+- [azurerm_windows_virtual_machine_scale_set.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set) (resource)
 
 ## Required Inputs
 
 The following input variables are required:
 
-### <a name="input_vmss"></a> [vmss](#input\_vmss)
+### <a name="input_instance"></a> [instance](#input\_instance)
 
 Description: Contains all virtual machine scale set configuration
 
@@ -92,6 +59,7 @@ Type:
 object({
     name                                              = string
     type                                              = string
+    os_type                                           = optional(string)
     resource_group_name                               = optional(string)
     location                                          = optional(string)
     sku                                               = optional(string, "Standard_DS1_v2")
@@ -123,17 +91,27 @@ object({
     host_group_id                                     = optional(string)
     max_bid_price                                     = optional(number)
     proximity_placement_group_id                      = optional(string)
-    single_placement_group                            = optional(bool, true)
+    network_api_version                               = optional(string)
+    single_placement_group                            = optional(bool)
     source_image_id                                   = optional(string)
+    priority_mix = optional(object({
+      base_regular_count            = optional(number)
+      regular_percentage_above_base = optional(number)
+    }))
+    sku_profile = optional(object({
+      allocation_strategy = string
+      vm_sizes            = list(string)
+    }))
     additional_capabilities = optional(object({
       ultra_ssd_enabled = optional(bool, false)
     }))
     tags                     = optional(map(string))
     public_key               = optional(string)
     enable_automatic_updates = optional(bool, true)
+    patch_assessment_mode    = optional(string)
+    patch_mode               = optional(string)
     hotpatching_enabled      = optional(bool, false)
     timezone                 = optional(string)
-    patch_mode               = optional(string)
     license_type             = optional(string)
     source_image_reference = optional(object({
       publisher = string
@@ -176,6 +154,7 @@ object({
           tag  = string
         })))
         public_ip_prefix_id = optional(string)
+        sku_name            = optional(string)
         version             = optional(string)
       }))
       ip_configuration = optional(object({
@@ -195,17 +174,18 @@ object({
       write_accelerator_enabled      = optional(bool, false)
     })), {})
     extensions = optional(map(object({
-      name                        = optional(string)
-      publisher                   = string
-      type                        = string
-      type_handler_version        = string
-      settings                    = optional(any, {})
-      protected_settings          = optional(any, {})
-      auto_upgrade_minor_version  = optional(bool, true)
-      automatic_upgrade_enabled   = optional(bool, false)
-      failure_suppression_enabled = optional(bool, false)
-      provision_after_extensions  = optional(list(string), [])
-      force_update_tag            = optional(string)
+      name                                = optional(string)
+      publisher                           = string
+      type                                = string
+      type_handler_version                = string
+      settings                            = optional(any, {})
+      protected_settings                  = optional(any, {})
+      auto_upgrade_minor_version          = optional(bool, true)
+      automatic_upgrade_enabled           = optional(bool, false)
+      failure_suppression_enabled         = optional(bool, false)
+      provision_after_extensions          = optional(list(string), [])
+      force_update_tag                    = optional(string)
+      force_extension_execution_on_change = optional(string)
       protected_settings_from_key_vault = optional(object({
         secret_url      = string
         source_vault_id = string
@@ -248,6 +228,8 @@ object({
       prioritize_unhealthy_instances_enabled  = optional(bool)
       maximum_surge_instances_enabled         = optional(bool)
     }))
+    resilient_vm_creation_enabled = optional(bool, false)
+    resilient_vm_deletion_enabled = optional(bool, false)
     scale_in = optional(object({
       rule                   = optional(string)
       force_deletion_enabled = optional(bool)
@@ -275,54 +257,9 @@ object({
       content = optional(string)
       setting = optional(string)
     }))
-    generate_ssh_key = optional(object({
-      enable           = optional(bool, false)
-      algorithm        = optional(string, "RSA")
-      rsa_bits         = optional(number, 4096)
-      ecdsa_curve      = optional(string)
-      expiration_date  = optional(string)
-      not_before_date  = optional(string)
-      value_wo_version = optional(number)
-      value_wo         = optional(string)
-      content_type     = optional(string)
-    }))
-    generate_password = optional(object({
-      enable           = optional(bool, false)
-      length           = optional(number, 24)
-      special          = optional(bool, true)
-      min_lower        = optional(number, 5)
-      min_upper        = optional(number, 7)
-      min_special      = optional(number, 4)
-      min_numeric      = optional(number, 5)
-      numeric          = optional(bool)
-      upper            = optional(bool)
-      lower            = optional(bool)
-      override_special = optional(string)
-      expiration_date  = optional(string)
-      not_before_date  = optional(string)
-      value_wo_version = optional(number)
-      value_wo         = optional(string)
-      content_type     = optional(string)
-      keepers          = optional(map(string))
-    }), { enable = false })
     autoscaling = optional(object({
-      enabled      = optional(bool, true)
-      name         = optional(string, "scaler")
-      profile_name = optional(string, "default")
-      min          = number
-      max          = number
-      default      = optional(number, 1)
-      fixed_date = optional(object({
-        end      = string
-        start    = string
-        timezone = optional(string)
-      }))
-      recurrence = optional(object({
-        timezone = optional(string)
-        days     = list(string)
-        hours    = list(number)
-        minutes  = list(number)
-      }))
+      enabled = optional(bool, true)
+      name    = optional(string, "scaler")
       notification = optional(object({
         email = optional(object({
           send_to_subscription_administrator    = optional(bool)
@@ -338,7 +275,7 @@ object({
         scale_mode      = string
         look_ahead_time = optional(string)
       }))
-      profiles = optional(list(object({
+      profiles = optional(map(object({
         name = string
         capacity = object({
           default = number
@@ -356,7 +293,7 @@ object({
           hours    = list(number)
           minutes  = list(number)
         }))
-        rules = optional(list(object({
+        rules = optional(map(object({
           metric_trigger = object({
             metric_name        = string
             metric_resource_id = optional(string)
@@ -380,28 +317,8 @@ object({
             value     = string
             cooldown  = string
           })
-        })))
-      })))
-      rules = optional(map(object({
-        metric_name      = string
-        time_aggregation = string
-        time_window      = string
-        operator         = string
-        threshold        = number
-        time_grain       = string
-        direction        = string
-        type             = string
-        value            = string
-        cooldown         = string
-        statistic        = string
-        metric_namespace = optional(string)
-        dimensions = optional(list(object({
-          name     = string
-          operator = string
-          values   = list(string)
-        })))
-        divide_by_instance_count = optional(bool)
-      })))
+        })), {})
+      })), {})
     }))
   })
 ```
@@ -409,14 +326,6 @@ object({
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_keyvault"></a> [keyvault](#input\_keyvault)
-
-Description: keyvault id to store secrets
-
-Type: `string`
-
-Default: `null`
 
 ### <a name="input_location"></a> [location](#input\_location)
 
@@ -444,7 +353,7 @@ Default: `null`
 
 ### <a name="input_source_image_reference"></a> [source\_image\_reference](#input\_source\_image\_reference)
 
-Description: Default source image reference configuration to use when not specified at the vmss level
+Description: Default source image reference configuration to use when not specified at the instance level
 
 Type:
 
@@ -470,10 +379,6 @@ Default: `{}`
 ## Outputs
 
 The following outputs are exported:
-
-### <a name="output_subscriptionId"></a> [subscriptionId](#output\_subscriptionId)
-
-Description: contains the current subscription id
 
 ### <a name="output_vmss"></a> [vmss](#output\_vmss)
 
