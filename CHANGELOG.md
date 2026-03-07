@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v3.0.0...v3.0.1) (2026-03-07)
+
+
+### Bug Fixes
+
+* move examples under the correct folder path ([a847a1e](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/a847a1e8a2ec81fbe74498bc6f3c1abaa8093c3f))
+
 ## [3.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v2.2.0...v3.0.0) (2026-03-06)
 
 
