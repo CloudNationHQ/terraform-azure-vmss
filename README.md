@@ -380,6 +380,14 @@ Default: `{}`
 
 The following outputs are exported:
 
+### <a name="output_autoscale_settings"></a> [autoscale\_settings](#output\_autoscale\_settings)
+
+Description: contains all monitor autoscale settings config
+
+### <a name="output_extensions"></a> [extensions](#output\_extensions)
+
+Description: contains all virtual machine scale set extensions config
+
 ### <a name="output_vmss"></a> [vmss](#output\_vmss)
 
 Description: contains all virtual machine scale set config
