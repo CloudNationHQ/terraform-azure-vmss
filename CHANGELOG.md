@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v3.0.1...v3.1.0) (2026-04-03)
+
+
+### Features
+
+* add missing outputs ([#92](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/92)) ([bbe8e7d](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/bbe8e7ddf44803651fb3910f76dc12fc33696e43))
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#91](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/91)) ([89a8b49](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/89a8b49f98d01c8366e8d16300bf348d26dfb965))
+
 ## [3.0.1](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v3.0.0...v3.0.1) (2026-03-07)
 
 
