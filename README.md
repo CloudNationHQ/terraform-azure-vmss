@@ -101,6 +101,10 @@ object({
     sku_profile = optional(object({
       allocation_strategy = string
       vm_sizes            = list(string)
+      virtual_machine_size = optional(list(object({
+        name = string
+        rank = optional(number)
+      })))
     }))
     additional_capabilities = optional(object({
       ultra_ssd_enabled = optional(bool, false)
