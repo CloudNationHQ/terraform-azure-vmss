@@ -44,7 +44,6 @@ variable "instance" {
     }))
     sku_profile = optional(object({
       allocation_strategy = string
-      vm_sizes            = list(string)
       virtual_machine_size = optional(set(object({
         name = string
         rank = optional(number)
