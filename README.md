@@ -100,7 +100,7 @@ object({
     }))
     sku_profile = optional(object({
       allocation_strategy = string
-      vm_sizes            = optional(list(string))
+      vm_sizes            = list(string)
       virtual_machine_size = optional(list(object({
         name = string
         rank = optional(number)
