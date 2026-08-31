@@ -7,7 +7,7 @@ module "naming" {
 
 module "rg" {
   source  = "cloudnationhq/rg/azure"
-  version = "~> 2.0"
+  version = "~> 3.0"
 
   groups = {
     demo = {
@@ -19,9 +19,7 @@ module "rg" {
 
 module "network" {
   source  = "cloudnationhq/vnet/azure"
-  version = "~> 9.0"
-
-  naming = local.naming
+  version = "~> 10.0"
 
   vnet = {
     name                = module.naming.virtual_network.name
@@ -37,9 +35,7 @@ module "network" {
 
 module "kv" {
   source  = "cloudnationhq/kv/azure"
-  version = "~> 4.0"
-
-  naming = local.naming
+  version = "~> 6.0"
 
   vault = {
     name                = module.naming.key_vault.name_unique
@@ -57,11 +53,9 @@ module "kv" {
 
 module "scaleset" {
   source  = "cloudnationhq/vmss/azure"
-  version = "~> 3.0"
+  version = "~> 4.0"
 
-  naming = local.naming
-
-  instance = {
+  virtual_machine_scale_set = {
     type                = "flex"
     name                = module.naming.virtual_machine_scale_set.name_unique
     location            = module.rg.groups.demo.location
