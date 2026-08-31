@@ -56,6 +56,13 @@ module "scaleset" {
   version = "~> 4.0"
 
   virtual_machine_scale_set = {
+    sku            = "Standard_DS1_v2"
+    instances      = 2
+    admin_username = "adminuser"
+    username       = "adminuser"
+    os_disk = {
+      storage_account_type = "Standard_LRS"
+    }
     type                = "linux"
     name                = module.naming.linux_virtual_machine_scale_set.name_unique
     location            = module.rg.groups.demo.location

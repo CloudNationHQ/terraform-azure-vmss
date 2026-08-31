@@ -59,30 +59,30 @@ Type:
 object({
     name                                              = string
     type                                              = string
+    sku                                               = string
+    admin_username                                    = string
     os_type                                           = optional(string)
     resource_group_name                               = optional(string)
     location                                          = optional(string)
-    sku                                               = optional(string, "Standard_DS1_v2")
-    instances                                         = optional(number, 2)
-    username                                          = optional(string, "adminuser")
-    admin_username                                    = optional(string, "adminuser")
+    instances                                         = optional(number)
+    username                                          = optional(string)
     admin_password                                    = optional(string)
     computer_name_prefix                              = optional(string)
     custom_data                                       = optional(string)
     user_data                                         = optional(string)
     disable_password_authentication                   = optional(bool)
-    upgrade_mode                                      = optional(string, "Automatic")
+    upgrade_mode                                      = optional(string)
     provision_vm_agent                                = optional(bool)
-    platform_fault_domain_count                       = optional(number, 5)
-    priority                                          = optional(string, "Regular")
+    platform_fault_domain_count                       = optional(number)
+    priority                                          = optional(string)
     secure_boot_enabled                               = optional(bool)
     vtpm_enabled                                      = optional(bool)
     zone_balance                                      = optional(bool)
-    zones                                             = optional(list(string), ["2"])
+    zones                                             = optional(list(string))
     edge_zone                                         = optional(string)
     encryption_at_host_enabled                        = optional(bool)
     extension_operations_enabled                      = optional(bool)
-    extensions_time_budget                            = optional(string, "PT1H30M")
+    extensions_time_budget                            = optional(string)
     overprovision                                     = optional(bool)
     capacity_reservation_group_id                     = optional(string)
     do_not_run_extensions_on_overprovisioned_machines = optional(bool)
@@ -122,15 +122,15 @@ object({
       sku       = string
       version   = optional(string, "latest")
     }))
-    os_disk = optional(object({
-      storage_account_type             = optional(string, "Standard_LRS")
+    os_disk = object({
+      storage_account_type             = string
       caching                          = optional(string, "ReadWrite")
       disk_size_gb                     = optional(number)
       disk_encryption_set_id           = optional(string)
       security_encryption_type         = optional(string)
       write_accelerator_enabled        = optional(bool)
       secure_vm_disk_encryption_set_id = optional(string)
-    }), {})
+    })
     diff_disk_settings = optional(object({
       option    = optional(string)
       placement = optional(string)
@@ -138,13 +138,13 @@ object({
     interfaces = map(object({
       subnet                                       = string
       primary                                      = optional(bool)
-      dns_servers                                  = optional(list(string), [])
+      dns_servers                                  = optional(list(string))
       accelerated_networking_enabled               = optional(bool)
       ip_forwarding_enabled                        = optional(bool)
-      application_gateway_backend_address_pool_ids = optional(list(string), [])
-      application_security_group_ids               = optional(list(string), [])
-      load_balancer_backend_address_pool_ids       = optional(list(string), [])
-      load_balancer_inbound_nat_rules_ids          = optional(list(string), [])
+      application_gateway_backend_address_pool_ids = optional(list(string))
+      application_security_group_ids               = optional(list(string))
+      load_balancer_backend_address_pool_ids       = optional(list(string))
+      load_balancer_inbound_nat_rules_ids          = optional(list(string))
       auxiliary_mode                               = optional(string)
       auxiliary_sku                                = optional(string)
       network_security_group_id                    = optional(string)
@@ -168,7 +168,7 @@ object({
       name                      = optional(string)
       caching                   = optional(string, "ReadWrite")
       create_option             = optional(string, "Empty")
-      disk_size_gb              = optional(number, 10)
+      disk_size_gb              = optional(number)
       lun                       = number
       storage_account_type      = optional(string, "Standard_LRS")
       disk_encryption_set_id    = optional(string)
@@ -186,7 +186,7 @@ object({
       auto_upgrade_minor_version          = optional(bool)
       automatic_upgrade_enabled           = optional(bool)
       failure_suppression_enabled         = optional(bool)
-      provision_after_extensions          = optional(list(string), [])
+      provision_after_extensions          = optional(list(string))
       force_update_tag                    = optional(string)
       force_extension_execution_on_change = optional(string)
       protected_settings_from_key_vault = optional(object({
@@ -199,7 +199,7 @@ object({
     }))
     automatic_instance_repair = optional(object({
       enabled      = optional(bool)
-      grace_period = optional(string, "PT30M")
+      grace_period = optional(string)
       action       = optional(string)
     }))
     automatic_os_upgrade_policy = optional(object({
@@ -213,8 +213,8 @@ object({
       tag                    = optional(string)
     })), {})
     identity = optional(object({
-      type         = optional(string, "SystemAssigned")
-      identity_ids = optional(list(string), [])
+      type         = optional(string)
+      identity_ids = optional(list(string))
       name         = optional(string)
     }))
     plan = optional(object({
@@ -246,11 +246,11 @@ object({
     })), {})
     spot_restore = optional(object({
       enabled = optional(bool)
-      timeout = optional(string, "PT1H")
+      timeout = optional(string)
     }))
     termination_notification = optional(object({
       enabled = optional(bool)
-      timeout = optional(string, "PT5M")
+      timeout = optional(string)
     }))
     winrm_listener = optional(object({
       certificate_url = optional(string)
@@ -262,7 +262,7 @@ object({
     }))
     autoscaling = optional(object({
       enabled = optional(bool)
-      name    = optional(string, "scaler")
+      name    = optional(string)
       notification = optional(object({
         email = optional(object({
           send_to_subscription_administrator    = optional(bool)

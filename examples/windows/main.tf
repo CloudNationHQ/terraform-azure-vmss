@@ -59,6 +59,12 @@ module "scaleset" {
   version = "~> 4.0"
 
   virtual_machine_scale_set = {
+    sku            = "Standard_DS1_v2"
+    instances      = 2
+    admin_username = "adminuser"
+    os_disk = {
+      storage_account_type = "Standard_LRS"
+    }
     type                 = "windows"
     name                 = module.naming.windows_virtual_machine_scale_set.name_unique
     computer_name_prefix = "vmssdemo"
