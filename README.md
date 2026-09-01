@@ -136,6 +136,7 @@ object({
       placement = optional(string)
     }))
     interfaces = map(object({
+      name                                         = optional(string)
       subnet                                       = string
       primary                                      = optional(bool)
       dns_servers                                  = optional(list(string))
@@ -155,14 +156,15 @@ object({
         ip_tags = optional(map(object({
           type = string
           tag  = string
-        })))
+        })), {})
         public_ip_prefix_id = optional(string)
         sku_name            = optional(string)
         version             = optional(string)
       }))
       ip_configuration = optional(object({
+        name    = optional(string)
         version = optional(string)
-      }))
+      }), {})
     }))
     disks = optional(map(object({
       name                      = optional(string)

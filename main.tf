@@ -2,8 +2,13 @@
 resource "azurerm_linux_virtual_machine_scale_set" "this" {
   for_each = var.virtual_machine_scale_set.type == "linux" ? { "this" = true } : {}
 
-  resource_group_name = coalesce(var.virtual_machine_scale_set.resource_group_name, var.resource_group_name)
-  location            = coalesce(var.virtual_machine_scale_set.location, var.location)
+  resource_group_name = coalesce(
+    var.virtual_machine_scale_set.resource_group_name, var.resource_group_name
+  )
+
+  location = coalesce(
+    var.virtual_machine_scale_set.location, var.location
+  )
 
   name                                              = var.virtual_machine_scale_set.name
   sku                                               = var.virtual_machine_scale_set.sku
@@ -50,21 +55,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
   )
 
   dynamic "source_image_reference" {
-    for_each = var.virtual_machine_scale_set.source_image_id == null ? { "this" = true } : {}
+    for_each = var.virtual_machine_scale_set.source_image_id == null ? { "this" = coalesce(
+      var.virtual_machine_scale_set.source_image_reference, var.source_image_reference
+    ) } : {}
 
     content {
-      publisher = try(
-        var.virtual_machine_scale_set.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
-      )
-      offer = try(
-        var.virtual_machine_scale_set.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
-      )
-      sku = try(
-        var.virtual_machine_scale_set.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
-      )
-      version = try(
-        var.virtual_machine_scale_set.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
-      )
+      publisher = source_image_reference.value.publisher
+      offer     = source_image_reference.value.offer
+      sku       = source_image_reference.value.sku
+      version   = source_image_reference.value.version
     }
   }
 
@@ -172,7 +171,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
     for_each = var.virtual_machine_scale_set.interfaces
 
     content {
-      name                           = "nic-${network_interface.key}"
+      name                           = coalesce(network_interface.value.name, "nic-${network_interface.key}")
       primary                        = network_interface.value.primary
       dns_servers                    = network_interface.value.dns_servers
       accelerated_networking_enabled = network_interface.value.accelerated_networking_enabled
@@ -182,27 +181,27 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
       network_security_group_id      = network_interface.value.network_security_group_id
 
       ip_configuration {
-        name                                         = "ipconf-${network_interface.key}"
+        name                                         = coalesce(network_interface.value.ip_configuration.name, "ipconf-${network_interface.key}")
         primary                                      = network_interface.value.primary
         subnet_id                                    = network_interface.value.subnet
         application_gateway_backend_address_pool_ids = network_interface.value.application_gateway_backend_address_pool_ids
         application_security_group_ids               = network_interface.value.application_security_group_ids
         load_balancer_backend_address_pool_ids       = network_interface.value.load_balancer_backend_address_pool_ids
         load_balancer_inbound_nat_rules_ids          = network_interface.value.load_balancer_inbound_nat_rules_ids
-        version                                      = network_interface.value.ip_configuration != null ? network_interface.value.ip_configuration.version : null
+        version                                      = network_interface.value.ip_configuration.version
 
         dynamic "public_ip_address" {
           for_each = network_interface.value.public_ip_address != null ? { "this" = network_interface.value.public_ip_address } : {}
 
           content {
-            name                    = public_ip_address.value.name != null ? public_ip_address.value.name : "pip-${network_interface.key}"
+            name                    = coalesce(public_ip_address.value.name, "pip-${network_interface.key}")
             idle_timeout_in_minutes = public_ip_address.value.idle_timeout_in_minutes
             domain_name_label       = public_ip_address.value.domain_name_label
             public_ip_prefix_id     = public_ip_address.value.public_ip_prefix_id
             version                 = public_ip_address.value.version
 
             dynamic "ip_tag" {
-              for_each = coalesce(public_ip_address.value.ip_tags, {})
+              for_each = public_ip_address.value.ip_tags
 
               content {
                 tag  = ip_tag.value.tag
@@ -288,10 +287,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
 resource "azurerm_windows_virtual_machine_scale_set" "this" {
   for_each = var.virtual_machine_scale_set.type == "windows" ? { "this" = true } : {}
 
-  name                = var.virtual_machine_scale_set.name
-  resource_group_name = coalesce(var.virtual_machine_scale_set.resource_group_name, var.resource_group_name)
-  location            = coalesce(var.virtual_machine_scale_set.location, var.location)
+  resource_group_name = coalesce(
+    var.virtual_machine_scale_set.resource_group_name, var.resource_group_name
+  )
 
+  location = coalesce(
+    var.virtual_machine_scale_set.location, var.location
+  )
+
+  name                                              = var.virtual_machine_scale_set.name
   admin_password                                    = var.virtual_machine_scale_set.admin_password
   automatic_updates_enabled                         = var.virtual_machine_scale_set.automatic_updates_enabled
   license_type                                      = var.virtual_machine_scale_set.license_type
@@ -335,21 +339,15 @@ resource "azurerm_windows_virtual_machine_scale_set" "this" {
   )
 
   dynamic "source_image_reference" {
-    for_each = var.virtual_machine_scale_set.source_image_id == null ? { "this" = true } : {}
+    for_each = var.virtual_machine_scale_set.source_image_id == null ? { "this" = coalesce(
+      var.virtual_machine_scale_set.source_image_reference, var.source_image_reference
+    ) } : {}
 
     content {
-      publisher = try(
-        var.virtual_machine_scale_set.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
-      )
-      offer = try(
-        var.virtual_machine_scale_set.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
-      )
-      sku = try(
-        var.virtual_machine_scale_set.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
-      )
-      version = try(
-        var.virtual_machine_scale_set.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
-      )
+      publisher = source_image_reference.value.publisher
+      offer     = source_image_reference.value.offer
+      sku       = source_image_reference.value.sku
+      version   = source_image_reference.value.version
     }
   }
 
@@ -457,7 +455,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "this" {
     for_each = var.virtual_machine_scale_set.interfaces
 
     content {
-      name                           = "nic-${network_interface.key}"
+      name                           = coalesce(network_interface.value.name, "nic-${network_interface.key}")
       primary                        = network_interface.value.primary
       dns_servers                    = network_interface.value.dns_servers
       accelerated_networking_enabled = network_interface.value.accelerated_networking_enabled
@@ -467,27 +465,27 @@ resource "azurerm_windows_virtual_machine_scale_set" "this" {
       network_security_group_id      = network_interface.value.network_security_group_id
 
       ip_configuration {
-        name                                         = "ipconf-${network_interface.key}"
+        name                                         = coalesce(network_interface.value.ip_configuration.name, "ipconf-${network_interface.key}")
         primary                                      = network_interface.value.primary
         subnet_id                                    = network_interface.value.subnet
         application_gateway_backend_address_pool_ids = network_interface.value.application_gateway_backend_address_pool_ids
         application_security_group_ids               = network_interface.value.application_security_group_ids
         load_balancer_backend_address_pool_ids       = network_interface.value.load_balancer_backend_address_pool_ids
         load_balancer_inbound_nat_rules_ids          = network_interface.value.load_balancer_inbound_nat_rules_ids
-        version                                      = network_interface.value.ip_configuration != null ? network_interface.value.ip_configuration.version : null
+        version                                      = network_interface.value.ip_configuration.version
 
         dynamic "public_ip_address" {
           for_each = network_interface.value.public_ip_address != null ? { "this" = network_interface.value.public_ip_address } : {}
 
           content {
-            name                    = public_ip_address.value.name != null ? public_ip_address.value.name : "pip-${network_interface.key}"
+            name                    = coalesce(public_ip_address.value.name, "pip-${network_interface.key}")
             idle_timeout_in_minutes = public_ip_address.value.idle_timeout_in_minutes
             domain_name_label       = public_ip_address.value.domain_name_label
             public_ip_prefix_id     = public_ip_address.value.public_ip_prefix_id
             version                 = public_ip_address.value.version
 
             dynamic "ip_tag" {
-              for_each = coalesce(public_ip_address.value.ip_tags, {})
+              for_each = public_ip_address.value.ip_tags
 
               content {
                 tag  = ip_tag.value.tag
@@ -583,10 +581,15 @@ resource "azurerm_windows_virtual_machine_scale_set" "this" {
 resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
   for_each = var.virtual_machine_scale_set.type == "flex" ? { "this" = true } : {}
 
-  name                = var.virtual_machine_scale_set.name
-  resource_group_name = coalesce(var.virtual_machine_scale_set.resource_group_name, var.resource_group_name)
-  location            = coalesce(var.virtual_machine_scale_set.location, var.location)
+  resource_group_name = coalesce(
+    var.virtual_machine_scale_set.resource_group_name, var.resource_group_name
+  )
 
+  location = coalesce(
+    var.virtual_machine_scale_set.location, var.location
+  )
+
+  name                          = var.virtual_machine_scale_set.name
   network_api_version           = var.virtual_machine_scale_set.network_api_version
   platform_fault_domain_count   = var.virtual_machine_scale_set.platform_fault_domain_count
   proximity_placement_group_id  = var.virtual_machine_scale_set.proximity_placement_group_id
@@ -650,7 +653,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
     for_each = var.virtual_machine_scale_set.interfaces
 
     content {
-      name                           = "nic-${network_interface.key}"
+      name                           = coalesce(network_interface.value.name, "nic-${network_interface.key}")
       primary                        = network_interface.value.primary
       dns_servers                    = network_interface.value.dns_servers
       accelerated_networking_enabled = network_interface.value.accelerated_networking_enabled
@@ -660,19 +663,19 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
       network_security_group_id      = network_interface.value.network_security_group_id
 
       ip_configuration {
-        name                                         = "ipconf-${network_interface.key}"
+        name                                         = coalesce(network_interface.value.ip_configuration.name, "ipconf-${network_interface.key}")
         primary                                      = network_interface.value.primary
         subnet_id                                    = network_interface.value.subnet
         application_gateway_backend_address_pool_ids = network_interface.value.application_gateway_backend_address_pool_ids
         application_security_group_ids               = network_interface.value.application_security_group_ids
         load_balancer_backend_address_pool_ids       = network_interface.value.load_balancer_backend_address_pool_ids
-        version                                      = network_interface.value.ip_configuration != null ? network_interface.value.ip_configuration.version : null
+        version                                      = network_interface.value.ip_configuration.version
 
         dynamic "public_ip_address" {
           for_each = network_interface.value.public_ip_address != null ? { "this" = network_interface.value.public_ip_address } : {}
 
           content {
-            name                    = public_ip_address.value.name != null ? public_ip_address.value.name : "pip-${network_interface.key}"
+            name                    = coalesce(public_ip_address.value.name, "pip-${network_interface.key}")
             domain_name_label       = public_ip_address.value.domain_name_label
             idle_timeout_in_minutes = public_ip_address.value.idle_timeout_in_minutes
             public_ip_prefix_id     = public_ip_address.value.public_ip_prefix_id
@@ -680,7 +683,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
             version                 = public_ip_address.value.version
 
             dynamic "ip_tag" {
-              for_each = coalesce(public_ip_address.value.ip_tags, {})
+              for_each = public_ip_address.value.ip_tags
 
               content {
                 tag  = ip_tag.value.tag
@@ -711,13 +714,17 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
   }
 
   dynamic "os_profile" {
-    for_each = var.virtual_machine_scale_set.source_image_id != null || var.virtual_machine_scale_set.source_image_reference != null || var.source_image_reference != null ? { "this" = true } : {}
+    for_each = anytrue([
+      var.virtual_machine_scale_set.source_image_id != null,
+      var.virtual_machine_scale_set.source_image_reference != null,
+      var.source_image_reference != null,
+    ]) ? { "this" = var.virtual_machine_scale_set } : {}
 
     content {
       custom_data = var.virtual_machine_scale_set.custom_data != null ? base64encode(var.virtual_machine_scale_set.custom_data) : null
 
       dynamic "linux_configuration" {
-        for_each = lower(coalesce(var.virtual_machine_scale_set.os_type, "linux")) == "linux" ? { "this" = true } : {}
+        for_each = lower(coalesce(var.virtual_machine_scale_set.os_type, "linux")) == "linux" ? { "this" = var.virtual_machine_scale_set } : {}
 
         content {
           disable_password_authentication = (
@@ -760,7 +767,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
       }
 
       dynamic "windows_configuration" {
-        for_each = lower(coalesce(var.virtual_machine_scale_set.os_type, "linux")) == "windows" ? { "this" = true } : {}
+        for_each = lower(coalesce(var.virtual_machine_scale_set.os_type, "linux")) == "windows" ? { "this" = var.virtual_machine_scale_set } : {}
 
         content {
           admin_username            = var.virtual_machine_scale_set.admin_username
@@ -831,21 +838,15 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
   }
 
   dynamic "source_image_reference" {
-    for_each = var.virtual_machine_scale_set.source_image_id == null ? { "this" = true } : {}
+    for_each = var.virtual_machine_scale_set.source_image_id == null ? { "this" = coalesce(
+      var.virtual_machine_scale_set.source_image_reference, var.source_image_reference
+    ) } : {}
 
     content {
-      publisher = try(
-        var.virtual_machine_scale_set.source_image_reference.publisher, var.source_image_reference != null ? var.source_image_reference.publisher : null
-      )
-      offer = try(
-        var.virtual_machine_scale_set.source_image_reference.offer, var.source_image_reference != null ? var.source_image_reference.offer : null
-      )
-      sku = try(
-        var.virtual_machine_scale_set.source_image_reference.sku, var.source_image_reference != null ? var.source_image_reference.sku : null
-      )
-      version = try(
-        var.virtual_machine_scale_set.source_image_reference.version, var.source_image_reference != null ? var.source_image_reference.version : null
-      )
+      publisher = source_image_reference.value.publisher
+      offer     = source_image_reference.value.offer
+      sku       = source_image_reference.value.sku
+      version   = source_image_reference.value.version
     }
   }
 
@@ -912,7 +913,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
     for_each = var.virtual_machine_scale_set.extensions
 
     content {
-      name                                = lookup(extension.value, "name", extension.key)
+      name                                = coalesce(extension.value.name, extension.key)
       publisher                           = extension.value.publisher
       type                                = extension.value.type
       type_handler_version                = extension.value.type_handler_version
@@ -942,7 +943,10 @@ resource "azurerm_virtual_machine_scale_set_extension" "this" {
   # For Flex VMSS, extensions are defined within the VMSS resource itself so they run on individual instances.
   for_each = var.virtual_machine_scale_set.type != "flex" ? var.virtual_machine_scale_set.extensions : {}
 
-  name                         = lookup(each.value, "name", null) != null ? each.value.name : each.key
+  name = coalesce(
+    each.value.name, each.key
+  )
+
   virtual_machine_scale_set_id = var.virtual_machine_scale_set.type == "linux" ? azurerm_linux_virtual_machine_scale_set.this["this"].id : azurerm_windows_virtual_machine_scale_set.this["this"].id
   publisher                    = each.value.publisher
   type                         = each.value.type
