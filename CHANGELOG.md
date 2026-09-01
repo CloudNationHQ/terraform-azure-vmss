@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v3.1.0...v4.0.0) (2026-09-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* Upgrade to azurerm v5 ([#101](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/101))
+
+### Features
+
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#94](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/94)) ([e0a5102](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/e0a5102f300748df976cfabac97344f156d824a6))
+* **deps:** bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /tests ([#99](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/99)) ([3ce2696](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/3ce269629e2290cbd118832d8e74c4934c634484))
+* Upgrade to azurerm v5 ([#101](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/101)) ([5ca7655](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/5ca76559387a1d371969dd63a0d6a90b7b8ec5a2))
+
 ## [3.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v3.0.1...v3.1.0) (2026-04-03)
 
 
