@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v4.0.0...v4.1.0) (2026-10-20)
+
+
+### Features
+
+* **deps:** bump github.com/klauspost/compress in /tests ([#102](https://github.com/CloudNationHQ/terraform-azure-vmss/issues/102)) ([8f6a095](https://github.com/CloudNationHQ/terraform-azure-vmss/commit/8f6a095150767f1d6f234c7704c210cc62492d74))
+
 ## [4.0.0](https://github.com/CloudNationHQ/terraform-azure-vmss/compare/v3.1.0...v4.0.0) (2026-09-01)
 
 
