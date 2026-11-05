@@ -149,6 +149,7 @@ object({
       auxiliary_mode                               = optional(string)
       auxiliary_sku                                = optional(string)
       network_security_group_id                    = optional(string)
+      tags                                         = optional(map(string))
       public_ip_address = optional(object({
         name                    = optional(string)
         domain_name_label       = optional(string)

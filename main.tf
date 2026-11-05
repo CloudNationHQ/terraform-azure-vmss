@@ -661,6 +661,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
       auxiliary_mode                 = network_interface.value.auxiliary_mode
       auxiliary_sku                  = network_interface.value.auxiliary_sku
       network_security_group_id      = network_interface.value.network_security_group_id
+      tags                           = network_interface.value.tags
 
       ip_configuration {
         name                                         = coalesce(network_interface.value.ip_configuration.name, "ipconf-${network_interface.key}")
