@@ -79,6 +79,7 @@ object({
     vtpm_enabled                                      = optional(bool)
     zone_balance                                      = optional(bool)
     zones                                             = optional(list(string))
+    automatic_zone_rebalancing_enabled                = optional(bool)
     edge_zone                                         = optional(string)
     encryption_at_host_enabled                        = optional(bool)
     extension_operations_enabled                      = optional(bool)
@@ -149,6 +150,7 @@ object({
       auxiliary_mode                               = optional(string)
       auxiliary_sku                                = optional(string)
       network_security_group_id                    = optional(string)
+      tags                                         = optional(map(string))
       public_ip_address = optional(object({
         name                    = optional(string)
         domain_name_label       = optional(string)
