@@ -25,6 +25,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "this" {
   vtpm_enabled                                      = var.virtual_machine_scale_set.vtpm_enabled
   zone_balance                                      = var.virtual_machine_scale_set.zone_balance
   zones                                             = var.virtual_machine_scale_set.zones
+  automatic_zone_rebalancing_enabled                = var.virtual_machine_scale_set.automatic_zone_rebalancing_enabled
   edge_zone                                         = var.virtual_machine_scale_set.edge_zone
   encryption_at_host_enabled                        = var.virtual_machine_scale_set.encryption_at_host_enabled
   extension_operations_enabled                      = var.virtual_machine_scale_set.extension_operations_enabled
@@ -313,6 +314,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "this" {
   vtpm_enabled                                      = var.virtual_machine_scale_set.vtpm_enabled
   zone_balance                                      = var.virtual_machine_scale_set.zone_balance
   zones                                             = var.virtual_machine_scale_set.zones
+  automatic_zone_rebalancing_enabled                = var.virtual_machine_scale_set.automatic_zone_rebalancing_enabled
   edge_zone                                         = var.virtual_machine_scale_set.edge_zone
   encryption_at_host_enabled                        = var.virtual_machine_scale_set.encryption_at_host_enabled
   extension_operations_enabled                      = var.virtual_machine_scale_set.extension_operations_enabled
@@ -610,6 +612,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
   priority                      = var.virtual_machine_scale_set.priority
   license_type                  = var.virtual_machine_scale_set.license_type
 
+  automatic_zone_rebalancing_enabled         = var.virtual_machine_scale_set.automatic_zone_rebalancing_enabled
+  resilient_virtual_machine_creation_enabled = var.virtual_machine_scale_set.resilient_vm_creation_enabled
+  resilient_virtual_machine_deletion_enabled = var.virtual_machine_scale_set.resilient_vm_deletion_enabled
+
   tags = coalesce(
     var.virtual_machine_scale_set.tags, var.tags
   )
@@ -661,6 +667,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "this" {
       auxiliary_mode                 = network_interface.value.auxiliary_mode
       auxiliary_sku                  = network_interface.value.auxiliary_sku
       network_security_group_id      = network_interface.value.network_security_group_id
+      tags                           = network_interface.value.tags
 
       ip_configuration {
         name                                         = coalesce(network_interface.value.ip_configuration.name, "ipconf-${network_interface.key}")
